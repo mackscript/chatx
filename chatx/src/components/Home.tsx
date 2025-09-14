@@ -1,8 +1,29 @@
-interface HomeProps {
-  onJoinChat: () => void;
-}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Home = ({ onJoinChat }: HomeProps) => {
+const Home = () => {
+  const navigate = useNavigate();
+  const [showRoomCreated, setShowRoomCreated] = useState(false);
+  const [createdRoomId, setCreatedRoomId] = useState("");
+
+  const generateRoomId = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
+  const handleCreateRoom = () => {
+    const roomId = generateRoomId();
+    setCreatedRoomId(roomId);
+    setShowRoomCreated(true);
+  };
+
+  const handleJoinRoom = () => {
+    navigate(`/${createdRoomId}`);
+  };
+
+  const copyRoomUrl = () => {
+    const url = `${window.location.origin}/${createdRoomId}`;
+    navigator.clipboard.writeText(url);
+  };
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="max-w-4xl mx-auto text-center">
@@ -21,27 +42,63 @@ const Home = ({ onJoinChat }: HomeProps) => {
             </p>
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <div className="pt-8">
-            <button
-              onClick={onJoinChat}
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {!showRoomCreated ? (
+              <button
+                onClick={handleCreateRoom}
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-              Start Chatting
-            </button>
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Create a New Chat
+              </button>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 max-w-md mx-auto">
+                  <h3 className="text-lg font-semibold text-white mb-4">Room Created!</h3>
+                  <div className="space-y-4">
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
+                      <p className="text-sm text-gray-400 mb-1">Share this URL:</p>
+                      <p className="text-sm text-blue-400 font-mono break-all">
+                        {window.location.origin}/{createdRoomId}
+                      </p>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={copyRoomUrl}
+                        className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                      >
+                        Copy URL
+                      </button>
+                      <button
+                        onClick={handleJoinRoom}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-violet-600 text-white text-sm rounded-lg hover:shadow-lg transition-all"
+                      >
+                        Join Room
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowRoomCreated(false)}
+                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                >
+                  Create Another Room
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Features */}

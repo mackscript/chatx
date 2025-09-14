@@ -17,6 +17,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     isLoading,
     error,
     typingUsers,
+    onlineUsers,
     sendMessage,
     handleTyping
   } = useChat({ username, room });
@@ -73,6 +74,35 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             <div>
               <h1 className="text-xl font-semibold text-white">ChatRoom</h1>
               <p className="text-sm text-gray-400">{room} room</p>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-xs text-gray-400">
+                    {onlineUsers.length} online
+                  </span>
+                </div>
+                {onlineUsers.length > 0 && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-xs text-gray-500">•</span>
+                    <div className="flex -space-x-1">
+                      {onlineUsers.slice(0, 3).map((user) => (
+                        <div
+                          key={user.socketId}
+                          className="w-6 h-6 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-gray-900"
+                          title={user.username}
+                        >
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                      ))}
+                      {onlineUsers.length > 3 && (
+                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs text-gray-300 font-medium border-2 border-gray-900">
+                          +{onlineUsers.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

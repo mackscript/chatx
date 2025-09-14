@@ -9,11 +9,17 @@ export interface Message {
   socketId?: string;
 }
 
+export interface OnlineUser {
+  socketId: string;
+  username: string;
+}
+
 export interface SocketEvents {
   receive_message: (message: Message) => void;
   user_joined: (data: { message: string; timestamp: string; type: string }) => void;
   user_left: (data: { message: string; timestamp: string; type: string }) => void;
   user_typing: (data: { user: string; isTyping: boolean; socketId: string }) => void;
+  room_users_updated: (data: { users: OnlineUser[]; count: number }) => void;
   error: (error: { message: string; error?: string }) => void;
 }
 
@@ -51,9 +57,9 @@ class SocketService {
     }
   }
 
-  joinRoom(room: string): void {
+  joinRoom(room: string, username: string): void {
     if (this.socket) {
-      this.socket.emit('join_room', room);
+      this.socket.emit('join_room', { room, username });
     }
   }
 
@@ -90,6 +96,12 @@ class SocketService {
   onUserTyping(callback: (data: { user: string; isTyping: boolean; socketId: string }) => void): void {
     if (this.socket) {
       this.socket.on('user_typing', callback);
+    }
+  }
+
+  onRoomUsersUpdated(callback: (data: { users: OnlineUser[]; count: number }) => void): void {
+    if (this.socket) {
+      this.socket.on('room_users_updated', callback);
     }
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import socketService, { type Message } from '../services/socketService';
+import socketService, { type Message, type OnlineUser } from '../services/socketService';
 import apiService from '../services/apiService';
 
 interface UseChatProps {
@@ -18,7 +18,8 @@ export const useChat = ({ username, room }: UseChatProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial messages
   const loadMessages = useCallback(async () => {
@@ -44,7 +45,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
     socket.on('connect', () => {
       setIsConnected(true);
       setError(null);
-      socketService.joinRoom(room);
+      socketService.joinRoom(room, username);
     });
 
     socket.on('disconnect', () => {
@@ -63,7 +64,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
       socketService.removeAllListeners();
       socketService.disconnect();
     };
-  }, [room, loadMessages]);
+  }, [room, loadMessages, username]);
 
   // Set up message listeners
   useEffect(() => {
@@ -96,6 +97,10 @@ export const useChat = ({ username, room }: UseChatProps) => {
           }, 3000);
         }
       }
+    });
+
+    socketService.onRoomUsersUpdated((data) => {
+      setOnlineUsers(data.users);
     });
 
     socketService.onError((error) => {
@@ -154,6 +159,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
     isLoading,
     error,
     typingUsers,
+    onlineUsers,
     sendMessage,
     handleTyping,
     loadMessages

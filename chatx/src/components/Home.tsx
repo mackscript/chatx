@@ -9,7 +9,7 @@ const Home = ({ onJoinChat }: HomeProps) => {
         {/* Hero Section */}
         <div className="space-y-8">
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
+            <h1 className="text-5xl mt-14  md:text-6xl font-bold text-white tracking-tight">
               Welcome to{" "}
               <span className="bg-gradient-to-r from-blue-400 to-violet-500 bg-clip-text text-transparent">
                 ChatRoom

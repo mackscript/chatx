@@ -38,13 +38,18 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewMessage(e.target.value);
     handleTyping();
   };
 
+
   const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: "2-digit", 
+      minute: "2-digit",
+      hour12: true 
+    });
   };
 
   return (
@@ -184,13 +189,23 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSendMessage} className="flex space-x-4">
             <div className="flex-1 relative">
-              <input
-                type="text"
+              <textarea
                 value={newMessage}
                 onChange={handleInputChange}
                 placeholder={isConnected ? "Type your message..." : "Connecting..."}
                 disabled={!isConnected}
-                className="w-full px-4 py-3 bg-gray-800 text-white rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50"
+                rows={1}
+                className="w-full px-4 py-3 bg-gray-800 text-white rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 resize-none overflow-hidden"
+                style={{
+                  minHeight: '48px',
+                  maxHeight: '120px',
+                  height: 'auto'
+                }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                }}
               />
             </div>
             <button

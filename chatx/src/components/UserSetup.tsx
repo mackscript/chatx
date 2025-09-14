@@ -6,12 +6,11 @@ interface UserSetupProps {
 
 const UserSetup = ({ onUserSet }: UserSetupProps) => {
   const [username, setUsername] = useState('');
-  const [room, setRoom] = useState('general');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
-      onUserSet(username.trim(), room);
+      onUserSet(username.trim(), 'general');
     }
   };
 
@@ -42,21 +41,6 @@ const UserSetup = ({ onUserSet }: UserSetupProps) => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Room
-              </label>
-              <select
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 text-white rounded-xl border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-              >
-                <option value="general">General</option>
-                <option value="random">Random</option>
-                <option value="tech">Tech Talk</option>
-                <option value="gaming">Gaming</option>
-              </select>
-            </div>
 
             <button
               type="submit"

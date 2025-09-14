@@ -10,7 +10,7 @@ interface ChatroomProps {
 const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const {
     messages,
     isConnected,
@@ -19,7 +19,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     typingUsers,
     onlineUsers,
     sendMessage,
-    handleTyping
+    handleTyping,
   } = useChat({ username, room });
 
   const scrollToBottom = () => {
@@ -43,12 +43,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     handleTyping();
   };
 
-
   const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: "2-digit", 
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
       minute: "2-digit",
-      hour12: true 
+      hour12: true,
     });
   };
 
@@ -112,11 +111,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-400' : 'bg-red-400'
-            }`}></div>
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isConnected ? "bg-green-400" : "bg-red-400"
+              }`}
+            ></div>
             <span className="text-sm text-gray-400">
-              {isConnected ? 'Connected' : 'Disconnected'}
+              {isConnected ? "Connected" : "Disconnected"}
             </span>
           </div>
         </div>
@@ -130,7 +131,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               {error}
             </div>
           )}
-          
+
           {isLoading ? (
             <div className="text-center text-gray-400 py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -170,16 +171,17 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               </div>
             ))
           )}
-          
+
           {/* Typing Indicators */}
           {typingUsers.length > 0 && (
             <div className="flex justify-start">
               <div className="bg-gray-800 text-gray-400 px-4 py-2 rounded-xl text-sm">
-                {typingUsers.map(u => u.user).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                {typingUsers.map((u) => u.user).join(", ")}{" "}
+                {typingUsers.length === 1 ? "is" : "are"} typing...
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -187,31 +189,37 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       {/* Message Input */}
       <div className="bg-gray-900/80 backdrop-blur-sm border-t border-gray-800 p-4">
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSendMessage} className="flex space-x-4">
+          <form
+            onSubmit={handleSendMessage}
+            className="flex items-center space-x-4"
+          >
             <div className="flex-1 relative">
               <textarea
                 value={newMessage}
                 onChange={handleInputChange}
-                placeholder={isConnected ? "Type your message..." : "Connecting..."}
+                placeholder={
+                  isConnected ? "Type your message..." : "Connecting..."
+                }
                 disabled={!isConnected}
                 rows={1}
                 className="w-full px-4 py-3 bg-gray-800 text-white rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 resize-none overflow-hidden"
                 style={{
-                  minHeight: '48px',
-                  maxHeight: '120px',
-                  height: 'auto'
+                  minHeight: "48px",
+                  maxHeight: "120px",
+                  height: "auto",
                 }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                  target.style.height = "auto";
+                  target.style.height =
+                    Math.min(target.scrollHeight, 120) + "px";
                 }}
               />
             </div>
             <button
               type="submit"
               disabled={!newMessage.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
             >
               <svg
                 className="w-5 h-5"

@@ -31,17 +31,20 @@ export class MessageController {
     const limitNum = parseInt(limit);
     const skipNum = parseInt(skip);
 
-    let messages;
+    // Filter out messages older than 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const filter = { timestamp: { $gte: twentyFourHoursAgo } };
+    
     if (room) {
-      messages = await this.messageModel.collection
-        .find({ room })
-        .sort({ timestamp: -1 })
-        .limit(limitNum)
-        .skip(skipNum)
-        .toArray();
-    } else {
-      messages = await this.messageModel.getAll(limitNum, skipNum);
+      filter.room = room;
     }
+
+    const messages = await this.messageModel.collection
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .limit(limitNum)
+      .skip(skipNum)
+      .toArray();
 
     res.status(200).json({
       success: true,
@@ -89,6 +92,17 @@ export class MessageController {
     res.status(200).json({
       success: true,
       message: 'Message deleted successfully'
+    });
+  });
+
+  // POST /api/messages/cleanup - Manual cleanup of expired messages
+  cleanupExpiredMessages = asyncHandler(async (req, res) => {
+    const result = await this.messageModel.deleteExpiredMessages();
+
+    res.status(200).json({
+      success: true,
+      message: `Cleanup completed. ${result.deletedCount} expired messages deleted.`,
+      deletedCount: result.deletedCount
     });
   });
 }

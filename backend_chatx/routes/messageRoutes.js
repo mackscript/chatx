@@ -21,5 +21,8 @@ export const createMessageRoutes = (db) => {
   // DELETE /api/messages/:id - Delete message by ID
   router.delete('/:id', messageController.deleteMessage);
 
+  // POST /api/messages/cleanup - Manual cleanup of expired messages
+  router.post('/cleanup', messageController.cleanupExpiredMessages);
+
   return router;
 };

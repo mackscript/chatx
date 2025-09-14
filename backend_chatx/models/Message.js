@@ -1,17 +1,17 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId } from "mongodb";
 
 export class Message {
   constructor(db) {
-    this.collection = db.collection('messages');
+    this.collection = db.collection("messages");
   }
 
   async create(messageData) {
     const message = {
       ...messageData,
       timestamp: new Date(),
-      _id: new ObjectId()
+      _id: new ObjectId(),
     };
-    
+
     const result = await this.collection.insertOne(message);
     return { ...message, _id: result.insertedId };
   }
@@ -31,5 +31,12 @@ export class Message {
 
   async deleteById(id) {
     return await this.collection.deleteOne({ _id: new ObjectId(id) });
+  }
+
+  async deleteExpiredMessages() {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return await this.collection.deleteMany({
+      timestamp: { $lt: twentyFourHoursAgo },
+    });
   }
 }

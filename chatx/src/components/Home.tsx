@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+interface HomeProps {
+  onJoinChat: () => void;
+}
 
-const Home = () => {
+const Home = ({ onJoinChat }: HomeProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="max-w-4xl mx-auto text-center">
@@ -21,8 +23,8 @@ const Home = () => {
 
           {/* CTA Button */}
           <div className="pt-8">
-            <Link
-              to="/chatroom"
+            <button
+              onClick={onJoinChat}
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
             >
               <svg
@@ -39,7 +41,7 @@ const Home = () => {
                 />
               </svg>
               Start Chatting
-            </Link>
+            </button>
           </div>
 
           {/* Features */}

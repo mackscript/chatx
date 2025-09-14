@@ -7,7 +7,10 @@ const Home = () => {
   const [createdRoomId, setCreatedRoomId] = useState("");
 
   const generateRoomId = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   };
 
   const handleCreateRoom = () => {
@@ -25,7 +28,47 @@ const Home = () => {
     navigator.clipboard.writeText(url);
   };
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <div className="min-h-screen items-center justify-center px-6">
+      <header className="px-6 py-4 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-violet-600 rounded-lg flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h1 className="text-xl font-semibold text-white">ChatX</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-400 flex items-center space-x-1">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>Messages auto-delete after 24hrs</span>
+            </div>
+          </div>
+        </div>
+      </header>
       <div className="max-w-4xl mx-auto text-center">
         {/* Hero Section */}
         <div className="space-y-8">
@@ -33,7 +76,7 @@ const Home = () => {
             <h1 className="text-5xl mt-14  md:text-6xl font-bold text-white tracking-tight">
               Welcome to{" "}
               <span className="bg-gradient-to-r from-blue-400 to-violet-500 bg-clip-text text-transparent">
-                ChatRoom
+                ChatX
               </span>
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
@@ -67,10 +110,14 @@ const Home = () => {
             ) : (
               <div className="space-y-6">
                 <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 max-w-md mx-auto">
-                  <h3 className="text-lg font-semibold text-white mb-4">Room Created!</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">
+                    Room Created!
+                  </h3>
                   <div className="space-y-4">
                     <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                      <p className="text-sm text-gray-400 mb-1">Share this URL:</p>
+                      <p className="text-sm text-gray-400 mb-1">
+                        Share this URL:
+                      </p>
                       <p className="text-sm text-blue-400 font-mono break-all">
                         {window.location.origin}/{createdRoomId}
                       </p>

@@ -19,7 +19,7 @@ export interface SocketEvents {
 
 class SocketService {
   private socket: Socket | null = null;
-  private readonly serverUrl = 'http://localhost:3001';
+  private readonly serverUrl = 'http://192.168.0.94:3001';
 
   connect(): Socket {
     if (!this.socket) {

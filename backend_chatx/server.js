@@ -1,12 +1,24 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import { MongoClient, ServerApiVersion } from 'mongodb';
+import { createMessageRoutes } from './routes/messageRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { setupSocketHandlers } from './utils/socketHandler.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 const PORT = process.env.PORT || 3001;
 
 // Middleware
@@ -34,6 +46,12 @@ async function connectToDatabase() {
     
     // Set the database (you can change 'chatx' to your preferred database name)
     db = client.db('chatx');
+    
+    // Setup routes after database connection is established
+    app.use('/api/messages', createMessageRoutes(db));
+    
+    // Setup Socket.IO handlers
+    setupSocketHandlers(io, db);
     
     return db;
   } catch (error) {
@@ -70,37 +88,17 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Example chat endpoints (you can expand these)
-app.get('/api/messages', async (req, res) => {
-  try {
-    const messages = await db.collection('messages').find({}).toArray();
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/messages', async (req, res) => {
-  try {
-    const { message, user, timestamp } = req.body;
-    const result = await db.collection('messages').insertOne({
-      message,
-      user,
-      timestamp: timestamp || new Date().toISOString()
-    });
-    res.json({ success: true, id: result.insertedId });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Start server and connect to database
 async function startServer() {
   await connectToDatabase();
   
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔌 Socket.IO server ready`);
   });
 }
 

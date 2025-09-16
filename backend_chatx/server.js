@@ -32,6 +32,11 @@ let db;
 let cleanupService;
 
 const client = new MongoClient(uri, {
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  serverSelectionTimeoutMS: 5000,
+  retryWrites: true,
+  w: "majority",
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,

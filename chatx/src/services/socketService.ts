@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from "socket.io-client";
 
 export interface Message {
   _id: string;
@@ -16,34 +16,46 @@ export interface OnlineUser {
 
 export interface SocketEvents {
   receive_message: (message: Message) => void;
-  user_joined: (data: { message: string; timestamp: string; type: string }) => void;
-  user_left: (data: { message: string; timestamp: string; type: string }) => void;
-  user_typing: (data: { user: string; isTyping: boolean; socketId: string }) => void;
+  user_joined: (data: {
+    message: string;
+    timestamp: string;
+    type: string;
+  }) => void;
+  user_left: (data: {
+    message: string;
+    timestamp: string;
+    type: string;
+  }) => void;
+  user_typing: (data: {
+    user: string;
+    isTyping: boolean;
+    socketId: string;
+  }) => void;
   room_users_updated: (data: { users: OnlineUser[]; count: number }) => void;
   error: (error: { message: string; error?: string }) => void;
 }
 
 class SocketService {
   private socket: Socket | null = null;
-  private readonly serverUrl = 'http://192.168.0.94:3001';
+  private readonly serverUrl = "http://192.168.0.94:3000";
 
   connect(): Socket {
     if (!this.socket) {
       this.socket = io(this.serverUrl, {
-        transports: ['websocket'],
+        transports: ["websocket"],
         autoConnect: true,
       });
 
-      this.socket.on('connect', () => {
-        console.log('🔌 Connected to server:', this.socket?.id);
+      this.socket.on("connect", () => {
+        console.log("🔌 Connected to server:", this.socket?.id);
       });
 
-      this.socket.on('disconnect', () => {
-        console.log('🔌 Disconnected from server');
+      this.socket.on("disconnect", () => {
+        console.log("🔌 Disconnected from server");
       });
 
-      this.socket.on('connect_error', (error) => {
-        console.error('❌ Connection error:', error);
+      this.socket.on("connect_error", (error) => {
+        console.error("❌ Connection error:", error);
       });
     }
 
@@ -59,55 +71,67 @@ class SocketService {
 
   joinRoom(room: string, username: string): void {
     if (this.socket) {
-      this.socket.emit('join_room', { room, username });
+      this.socket.emit("join_room", { room, username });
     }
   }
 
-  sendMessage(messageData: { message: string; user: string; room: string }): void {
+  sendMessage(messageData: {
+    message: string;
+    user: string;
+    room: string;
+  }): void {
     if (this.socket) {
-      this.socket.emit('send_message', messageData);
+      this.socket.emit("send_message", messageData);
     }
   }
 
   sendTyping(data: { user: string; room: string; isTyping: boolean }): void {
     if (this.socket) {
-      this.socket.emit('typing', data);
+      this.socket.emit("typing", data);
     }
   }
 
   onReceiveMessage(callback: (message: Message) => void): void {
     if (this.socket) {
-      this.socket.on('receive_message', callback);
+      this.socket.on("receive_message", callback);
     }
   }
 
   onUserJoined(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('user_joined', callback);
+      this.socket.on("user_joined", callback);
     }
   }
 
   onUserLeft(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('user_left', callback);
+      this.socket.on("user_left", callback);
     }
   }
 
-  onUserTyping(callback: (data: { user: string; isTyping: boolean; socketId: string }) => void): void {
+  onUserTyping(
+    callback: (data: {
+      user: string;
+      isTyping: boolean;
+      socketId: string;
+    }) => void,
+  ): void {
     if (this.socket) {
-      this.socket.on('user_typing', callback);
+      this.socket.on("user_typing", callback);
     }
   }
 
-  onRoomUsersUpdated(callback: (data: { users: OnlineUser[]; count: number }) => void): void {
+  onRoomUsersUpdated(
+    callback: (data: { users: OnlineUser[]; count: number }) => void,
+  ): void {
     if (this.socket) {
-      this.socket.on('room_users_updated', callback);
+      this.socket.on("room_users_updated", callback);
     }
   }
 
   onError(callback: (error: any) => void): void {
     if (this.socket) {
-      this.socket.on('error', callback);
+      this.socket.on("error", callback);
     }
   }
 

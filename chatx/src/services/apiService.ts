@@ -1,12 +1,12 @@
-import axios from 'axios';
-import type { Message } from './socketService';
+import axios from "axios";
+import type { Message } from "./socketService";
 
-const API_BASE_URL = 'http://192.168.0.94:3001/api';
+const API_BASE_URL = "http://192.168.0.94:3000/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -30,13 +30,17 @@ export interface GetMessagesParams {
 }
 
 class ApiService {
-  async sendMessage(messageData: SendMessageRequest): Promise<ApiResponse<Message>> {
-    const response = await apiClient.post('/messages', messageData);
+  async sendMessage(
+    messageData: SendMessageRequest,
+  ): Promise<ApiResponse<Message>> {
+    const response = await apiClient.post("/messages", messageData);
     return response.data;
   }
 
-  async getMessages(params: GetMessagesParams = {}): Promise<ApiResponse<Message[]>> {
-    const response = await apiClient.get('/messages', { params });
+  async getMessages(
+    params: GetMessagesParams = {},
+  ): Promise<ApiResponse<Message[]>> {
+    const response = await apiClient.get("/messages", { params });
     return response.data;
   }
 
@@ -51,7 +55,7 @@ class ApiService {
   }
 
   async checkHealth(): Promise<any> {
-    const response = await apiClient.get('/health');
+    const response = await apiClient.get("/health");
     return response.data;
   }
 }

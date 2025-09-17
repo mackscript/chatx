@@ -12,6 +12,12 @@ interface TypingUser {
   socketId: string;
 }
 
+interface SocketError {
+  message: string;
+  type?: string;
+  error?: string;
+}
+
 export const useChat = ({ username, room }: UseChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -158,9 +164,20 @@ export const useChat = ({ username, room }: UseChatProps) => {
       ));
     });
 
-    socketService.onError((error) => {
+    socketService.onError((error: SocketError) => {
       console.error('Socket error:', error);
-      setError(error.message || 'Socket error occurred');
+      
+      // Handle specific error types
+      if (error.type === 'image_too_large') {
+        setError(`Image upload failed: ${error.message}`);
+      } else {
+        setError(error.message || 'Socket error occurred');
+      }
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     });
 
     return () => {
@@ -219,6 +236,12 @@ export const useChat = ({ username, room }: UseChatProps) => {
     if (!isConnected) return;
 
     try {
+      console.log('📤 Sending image message:', {
+        captionLength: caption.length,
+        imageDataSize: (imageData.length / (1024 * 1024)).toFixed(2) + 'MB (Base64)',
+        hasReply: !!replyingTo
+      });
+
       interface ImageMessageData {
         message: string;
         user: string;
@@ -254,9 +277,11 @@ export const useChat = ({ username, room }: UseChatProps) => {
 
       // Clear reply state after sending
       setReplyingTo(null);
+      
+      console.log('✅ Image message sent successfully');
     } catch (err) {
-      console.error('Failed to send image:', err);
-      setError('Failed to send image');
+      console.error('❌ Failed to send image:', err);
+      setError('Failed to send image. The image might be too large.');
     }
   }, [username, room, isConnected, replyingTo]);
 

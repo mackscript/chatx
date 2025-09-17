@@ -79,12 +79,19 @@ class SocketService {
         autoConnect: true,
       });
 
-      this.socket.on("connect", () => {
-        console.log("🔌 Connected to server:", this.socket?.id);
+      this.socket.on('connect', () => {
+        console.log('Connected to server');
       });
 
-      this.socket.on("disconnect", () => {
-        console.log("🔌 Disconnected from server");
+      this.socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+      });
+
+      this.socket.on('error', (error: any) => {
+        console.error('❌ Socket error:', error);
+        if (error.message) {
+          alert(`Error: ${error.message}`);
+        }
       });
 
       this.socket.on("connect_error", (error) => {

@@ -54,7 +54,14 @@ export const setupSocketHandlers = (io, db) => {
     // Handle sending messages
     socket.on('send_message', async (data) => {
       try {
-        console.log('🔄 Backend received message data:', data);
+        console.log('🔄 Backend received message data:', {
+          user: data.user,
+          room: data.room,
+          messageType: data.messageType,
+          hasImageData: !!data.imageData,
+          imageDataSize: data.imageData ? (data.imageData.length / (1024 * 1024)).toFixed(2) + 'MB' : 'N/A',
+          hasReply: !!data.replyTo
+        });
         const { message, user, room = 'general', replyTo, messageType, imageData } = data;
 
         // Validate data
@@ -72,6 +79,17 @@ export const setupSocketHandlers = (io, db) => {
         // For image messages, imageData is required
         if (messageType === 'image' && !imageData) {
           socket.emit('error', { message: 'Image data is required' });
+          return;
+        }
+
+        // Check image data size (Base64 encoded images are ~33% larger than original)
+        // Reduced limit to 2MB Base64 for better socket stability
+        if (imageData && imageData.length > 2 * 1024 * 1024) { // 2MB Base64 limit to prevent disconnects
+          console.log(`❌ Image too large: ${(imageData.length / (1024 * 1024)).toFixed(2)}MB Base64`);
+          socket.emit('error', { 
+            message: `Image is too large (${(imageData.length / (1024 * 1024)).toFixed(1)}MB). Please try again with a smaller image.`,
+            type: 'image_too_large'
+          });
           return;
         }
 

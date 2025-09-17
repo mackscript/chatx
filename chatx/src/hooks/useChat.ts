@@ -19,24 +19,21 @@ export const useChat = ({ username, room }: UseChatProps) => {
   const [error, setError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial messages
   const loadMessages = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log('Loading messages for room:', room, 'username:', username);
       const response = await apiService.getMessages({ 
         room, 
         limit: 50, 
         userId: username 
       });
       if (response.success) {
-        console.log('API Response:', response);
-        console.log('Raw messages from API:', response.data);
         // Reverse to show oldest first
         const reversedMessages = [...response.data].reverse();
-        console.log('Reversed messages:', reversedMessages);
         setMessages(reversedMessages);
       }
     } catch (err) {
@@ -78,8 +75,8 @@ export const useChat = ({ username, room }: UseChatProps) => {
   // Set up message listeners
   useEffect(() => {
     socketService.onReceiveMessage((message: Message) => {
-      console.log('Received message via socket:', message);
-      console.log('Message status:', message.status);
+      console.log('📥 Received message:', message);
+      console.log('📥 Reply data in received message:', message.replyTo);
       setMessages(prev => [...prev, message]);
       
       // Auto-mark message as read if it's not from current user
@@ -175,17 +172,45 @@ export const useChat = ({ username, room }: UseChatProps) => {
     if (!messageText.trim() || !isConnected) return;
 
     try {
-      // Send via Socket.IO for real-time delivery
-      socketService.sendMessage({
+      // Prepare message data
+      interface MessageData {
+        message: string;
+        user: string;
+        room: string;
+        replyTo?: {
+          messageId: string;
+          message: string;
+          user: string;
+        };
+      }
+
+      const messageData: MessageData = {
         message: messageText.trim(),
         user: username,
         room
-      });
+      };
+
+      // Add reply information if replying to a message
+      if (replyingTo) {
+        console.log('🔄 Sending reply to:', replyingTo);
+        messageData.replyTo = {
+          messageId: replyingTo._id,
+          message: replyingTo.message,
+          user: replyingTo.user
+        };
+        console.log('📤 Message data with reply:', messageData);
+      }
+
+      // Send via Socket.IO for real-time delivery
+      socketService.sendMessage(messageData);
+
+      // Clear reply state after sending
+      setReplyingTo(null);
     } catch (err) {
       console.error('Failed to send message:', err);
       setError('Failed to send message');
     }
-  }, [username, room, isConnected]);
+  }, [username, room, isConnected, replyingTo]);
 
   const sendTyping = useCallback((isTyping: boolean) => {
     if (isConnected) {
@@ -223,6 +248,15 @@ export const useChat = ({ username, room }: UseChatProps) => {
     }
   }, [messages, username]);
 
+  // Reply-related functions
+  const startReply = useCallback((message: Message) => {
+    setReplyingTo(message);
+  }, []);
+
+  const cancelReply = useCallback(() => {
+    setReplyingTo(null);
+  }, []);
+
   return {
     messages,
     isConnected,
@@ -230,9 +264,12 @@ export const useChat = ({ username, room }: UseChatProps) => {
     error,
     typingUsers,
     onlineUsers,
+    replyingTo,
     sendMessage,
     handleTyping,
     loadMessages,
-    markMessagesAsRead
+    markMessagesAsRead,
+    startReply,
+    cancelReply
   };
 };

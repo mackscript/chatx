@@ -19,7 +19,9 @@ export class Message {
         readAt: null,
         deliveredTo: [], // Array of user IDs who received the message
         readBy: [] // Array of user IDs who read the message
-      }
+      },
+      // Reply information (optional)
+      replyTo: messageData.replyTo || null
     };
 
     const result = await this.collection.insertOne(message);

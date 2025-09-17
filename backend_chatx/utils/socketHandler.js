@@ -54,7 +54,8 @@ export const setupSocketHandlers = (io, db) => {
     // Handle sending messages
     socket.on('send_message', async (data) => {
       try {
-        const { message, user, room = 'general' } = data;
+        console.log('🔄 Backend received message data:', data);
+        const { message, user, room = 'general', replyTo } = data;
 
         // Validate data
         if (!message || !user) {
@@ -62,13 +63,24 @@ export const setupSocketHandlers = (io, db) => {
           return;
         }
 
-        // Save message to database
-        const newMessage = await messageModel.create({
+        // Prepare message data
+        const messageData = {
           message: message.trim(),
           user: user.trim(),
           room: room.trim(),
           socketId: socket.id
-        });
+        };
+
+        // Add reply information if provided
+        if (replyTo) {
+          console.log('📝 Adding reply data to message:', replyTo);
+          messageData.replyTo = replyTo;
+        }
+
+        console.log('💾 Saving message to database:', messageData);
+        // Save message to database
+        const newMessage = await messageModel.create(messageData);
+        console.log('✅ Message saved:', newMessage);
 
         // Emit to all users in the room (including sender)
         const messagePayload = {
@@ -78,10 +90,11 @@ export const setupSocketHandlers = (io, db) => {
           room: newMessage.room,
           timestamp: newMessage.timestamp,
           socketId: socket.id,
-          status: newMessage.status
+          status: newMessage.status,
+          replyTo: newMessage.replyTo
         };
 
-        console.log('📤 Emitting message with status:', messagePayload);
+        console.log('📤 Emitting message payload:', messagePayload);
         io.to(room).emit('receive_message', messagePayload);
 
         // Auto-mark as delivered to all online users in the room (except sender)

@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useChat } from "../hooks/useChat";
+import { type Message } from "../services/socketService";
 import MessageStatus from "./MessageStatus";
+import ReplyPreview from "./ReplyPreview";
+import ReplyDisplay from "./ReplyDisplay";
 
 interface ChatroomProps {
   username: string;
@@ -19,9 +22,12 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     error,
     typingUsers,
     onlineUsers,
+    replyingTo,
     sendMessage,
     handleTyping,
     markMessagesAsRead,
+    startReply,
+    cancelReply,
   } = useChat({ username, room });
 
   const scrollToBottom = () => {
@@ -62,6 +68,17 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     handleTyping();
   };
 
+  const handleMessageClick = (message: Message) => {
+    startReply(message);
+  };
+
+  const handleMessageKeyDown = (e: React.KeyboardEvent, message: Message) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      startReply(message);
+    }
+  };
+
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: "2-digit",
@@ -69,7 +86,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       hour12: true,
     });
   };
-  console.log("Messages with status:", messages);
   return (
     <div className="h-[95vh] flex flex-col">
       {/* Header */}
@@ -179,17 +195,32 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 }`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl ${
+                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl cursor-pointer hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
                     message.user === username
                       ? "bg-gradient-to-r from-blue-500 to-violet-600 text-white"
                       : "bg-gray-800 text-white"
                   }`}
+                  onClick={() => handleMessageClick(message)}
+                  onKeyDown={(e) => handleMessageKeyDown(e, message)}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Reply to message from ${message.user}: ${message.message}`}
+                  title="Click to reply to this message"
                 >
                   {message.user !== username && (
                     <p className="text-xs text-purple-300 mb-1 font-medium">
                       {message.user}
                     </p>
                   )}
+                  
+                  {/* Show reply information if this message is a reply */}
+                  {message.replyTo && (
+                    <>
+                      {console.log('🔍 Message has replyTo:', message.replyTo)}
+                      <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
+                    </>
+                  )}
+                  
                   <p className="text-sm">{message.message}</p>
                   <div className="flex items-center justify-between mt-1">
                     <p
@@ -230,6 +261,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       {/* Message Input */}
       <div className="bg-gray-900/80 backdrop-blur-sm border-t border-gray-800 p-4">
         <div className="max-w-4xl mx-auto">
+          {/* Reply Preview */}
+          {replyingTo && (
+            <ReplyPreview replyingTo={replyingTo} onCancel={cancelReply} />
+          )}
+          
           <form
             onSubmit={handleSendMessage}
             className="flex items-center space-x-4"

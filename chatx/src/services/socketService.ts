@@ -11,6 +11,12 @@ export interface MessageStatus {
   readBy: string[];
 }
 
+export interface ReplyTo {
+  messageId: string;
+  message: string;
+  user: string;
+}
+
 export interface Message {
   _id: string;
   message: string;
@@ -19,6 +25,7 @@ export interface Message {
   timestamp: string;
   socketId?: string;
   status?: MessageStatus;
+  replyTo?: ReplyTo;
 }
 
 export interface OnlineUser {

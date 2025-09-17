@@ -177,6 +177,8 @@ export const useChat = ({ username, room }: UseChatProps) => {
         message: string;
         user: string;
         room: string;
+        messageType?: 'text' | 'image';
+        imageData?: string;
         replyTo?: {
           messageId: string;
           message: string;
@@ -187,7 +189,8 @@ export const useChat = ({ username, room }: UseChatProps) => {
       const messageData: MessageData = {
         message: messageText.trim(),
         user: username,
-        room
+        room,
+        messageType: 'text'
       };
 
       // Add reply information if replying to a message
@@ -209,6 +212,51 @@ export const useChat = ({ username, room }: UseChatProps) => {
     } catch (err) {
       console.error('Failed to send message:', err);
       setError('Failed to send message');
+    }
+  }, [username, room, isConnected, replyingTo]);
+
+  const sendImageMessage = useCallback(async (imageData: string, caption: string = '') => {
+    if (!isConnected) return;
+
+    try {
+      interface ImageMessageData {
+        message: string;
+        user: string;
+        room: string;
+        messageType: 'image';
+        imageData: string;
+        replyTo?: {
+          messageId: string;
+          message: string;
+          user: string;
+        };
+      }
+
+      const messageData: ImageMessageData = {
+        message: caption,
+        user: username,
+        room,
+        messageType: 'image',
+        imageData
+      };
+
+      // Add reply information if replying to a message
+      if (replyingTo) {
+        messageData.replyTo = {
+          messageId: replyingTo._id,
+          message: replyingTo.message,
+          user: replyingTo.user
+        };
+      }
+
+      // Send via Socket.IO for real-time delivery
+      socketService.sendMessage(messageData);
+
+      // Clear reply state after sending
+      setReplyingTo(null);
+    } catch (err) {
+      console.error('Failed to send image:', err);
+      setError('Failed to send image');
     }
   }, [username, room, isConnected, replyingTo]);
 
@@ -266,6 +314,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
     onlineUsers,
     replyingTo,
     sendMessage,
+    sendImageMessage,
     handleTyping,
     loadMessages,
     markMessagesAsRead,

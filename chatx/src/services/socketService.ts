@@ -26,6 +26,9 @@ export interface Message {
   socketId?: string;
   status?: MessageStatus;
   replyTo?: ReplyTo;
+  messageType?: 'text' | 'image';
+  imageUrl?: string;
+  imageData?: string; // Base64 image data
 }
 
 export interface OnlineUser {

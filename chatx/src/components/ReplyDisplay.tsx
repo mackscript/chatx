@@ -7,8 +7,6 @@ interface ReplyDisplayProps {
 }
 
 const ReplyDisplay: React.FC<ReplyDisplayProps> = ({ replyTo, className = '' }) => {
-  console.log('🔍 ReplyDisplay received replyTo:', replyTo);
-  
   const truncateMessage = (message: string, maxLength: number = 40) => {
     return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
   };

@@ -55,21 +55,39 @@ export const setupSocketHandlers = (io, db) => {
     socket.on('send_message', async (data) => {
       try {
         console.log('🔄 Backend received message data:', data);
-        const { message, user, room = 'general', replyTo } = data;
+        const { message, user, room = 'general', replyTo, messageType, imageData } = data;
 
         // Validate data
-        if (!message || !user) {
-          socket.emit('error', { message: 'Message and user are required' });
+        if (!user) {
+          socket.emit('error', { message: 'User is required' });
+          return;
+        }
+
+        // For text messages, message is required
+        if (messageType !== 'image' && !message) {
+          socket.emit('error', { message: 'Message text is required' });
+          return;
+        }
+
+        // For image messages, imageData is required
+        if (messageType === 'image' && !imageData) {
+          socket.emit('error', { message: 'Image data is required' });
           return;
         }
 
         // Prepare message data
         const messageData = {
-          message: message.trim(),
+          message: message ? message.trim() : '',
           user: user.trim(),
           room: room.trim(),
-          socketId: socket.id
+          socketId: socket.id,
+          messageType: messageType || 'text'
         };
+
+        // Add image data if provided
+        if (imageData) {
+          messageData.imageData = imageData;
+        }
 
         // Add reply information if provided
         if (replyTo) {
@@ -91,7 +109,9 @@ export const setupSocketHandlers = (io, db) => {
           timestamp: newMessage.timestamp,
           socketId: socket.id,
           status: newMessage.status,
-          replyTo: newMessage.replyTo
+          replyTo: newMessage.replyTo,
+          messageType: newMessage.messageType,
+          imageData: newMessage.imageData
         };
 
         console.log('📤 Emitting message payload:', messagePayload);

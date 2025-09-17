@@ -4,6 +4,9 @@ import { type Message } from "../services/socketService";
 import MessageStatus from "./MessageStatus";
 import ReplyPreview from "./ReplyPreview";
 import ReplyDisplay from "./ReplyDisplay";
+import ImageUpload from "./ImageUpload";
+import ImagePreview from "./ImagePreview";
+import ImageMessage from "./ImageMessage";
 
 interface ChatroomProps {
   username: string;
@@ -13,6 +16,7 @@ interface ChatroomProps {
 
 const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   const [newMessage, setNewMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState<{data: string, fileName: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -24,6 +28,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     onlineUsers,
     replyingTo,
     sendMessage,
+    sendImageMessage,
     handleTyping,
     markMessagesAsRead,
     startReply,
@@ -77,6 +82,22 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       e.preventDefault();
       startReply(message);
     }
+  };
+
+  const handleImageSelect = (imageData: string, fileName: string) => {
+    setSelectedImage({ data: imageData, fileName });
+  };
+
+  const handleImageSend = () => {
+    if (selectedImage) {
+      sendImageMessage(selectedImage.data, newMessage);
+      setSelectedImage(null);
+      setNewMessage("");
+    }
+  };
+
+  const handleImageCancel = () => {
+    setSelectedImage(null);
   };
 
   const formatTime = (timestamp: string) => {
@@ -215,13 +236,18 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   
                   {/* Show reply information if this message is a reply */}
                   {message.replyTo && (
-                    <>
-                      {console.log('🔍 Message has replyTo:', message.replyTo)}
-                      <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
-                    </>
+                    <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
                   )}
                   
-                  <p className="text-sm">{message.message}</p>
+                  {/* Display message content based on type */}
+                  {message.messageType === 'image' ? (
+                    <ImageMessage 
+                      imageData={message.imageData || ''} 
+                      caption={message.message}
+                    />
+                  ) : (
+                    <p className="text-sm">{message.message}</p>
+                  )}
                   <div className="flex items-center justify-between mt-1">
                     <p
                       className={`text-xs ${
@@ -266,6 +292,16 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             <ReplyPreview replyingTo={replyingTo} onCancel={cancelReply} />
           )}
           
+          {/* Image Preview */}
+          {selectedImage && (
+            <ImagePreview 
+              imageData={selectedImage.data}
+              fileName={selectedImage.fileName}
+              onSend={handleImageSend}
+              onCancel={handleImageCancel}
+            />
+          )}
+          
           <form
             onSubmit={handleSendMessage}
             className="flex items-center space-x-4"
@@ -293,6 +329,10 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 }}
               />
             </div>
+            <ImageUpload 
+              onImageSelect={handleImageSelect}
+              disabled={!isConnected}
+            />
             <button
               type="submit"
               disabled={!newMessage.trim()}

@@ -21,7 +21,10 @@ export class Message {
         readBy: [] // Array of user IDs who read the message
       },
       // Reply information (optional)
-      replyTo: messageData.replyTo || null
+      replyTo: messageData.replyTo || null,
+      // Message type and image data (optional)
+      messageType: messageData.messageType || 'text',
+      imageData: messageData.imageData || null
     };
 
     const result = await this.collection.insertOne(message);

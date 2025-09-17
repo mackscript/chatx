@@ -1,7 +1,6 @@
 import axios from "axios";
 import type { Message } from "./socketService";
-
-const API_BASE_URL = "http://192.168.0.94:3000/api";
+import { API_BASE_URL } from "./config";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

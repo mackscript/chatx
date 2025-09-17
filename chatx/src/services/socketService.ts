@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+import { SOCKET_URL } from "./config";
 
 export interface Message {
   _id: string;
@@ -37,7 +38,7 @@ export interface SocketEvents {
 
 class SocketService {
   private socket: Socket | null = null;
-  private readonly serverUrl = "http://192.168.0.94:3000";
+  private readonly serverUrl = SOCKET_URL;
 
   connect(): Socket {
     if (!this.socket) {
@@ -97,13 +98,21 @@ class SocketService {
     }
   }
 
-  onUserJoined(callback: (data: any) => void): void {
+  onUserJoined(callback: (data: {
+    message: string;
+    timestamp: string;
+    type: string;
+  }) => void): void {
     if (this.socket) {
       this.socket.on("user_joined", callback);
     }
   }
 
-  onUserLeft(callback: (data: any) => void): void {
+  onUserLeft(callback: (data: {
+    message: string;
+    timestamp: string;
+    type: string;
+  }) => void): void {
     if (this.socket) {
       this.socket.on("user_left", callback);
     }
@@ -129,7 +138,7 @@ class SocketService {
     }
   }
 
-  onError(callback: (error: any) => void): void {
+  onError(callback: (error: { message: string; error?: string }) => void): void {
     if (this.socket) {
       this.socket.on("error", callback);
     }

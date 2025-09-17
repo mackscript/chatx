@@ -25,10 +25,19 @@ export const useChat = ({ username, room }: UseChatProps) => {
   const loadMessages = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await apiService.getMessages({ room, limit: 50 });
+      console.log('Loading messages for room:', room, 'username:', username);
+      const response = await apiService.getMessages({ 
+        room, 
+        limit: 50, 
+        userId: username 
+      });
       if (response.success) {
+        console.log('API Response:', response);
+        console.log('Raw messages from API:', response.data);
         // Reverse to show oldest first
-        setMessages(response.data.reverse());
+        const reversedMessages = [...response.data].reverse();
+        console.log('Reversed messages:', reversedMessages);
+        setMessages(reversedMessages);
       }
     } catch (err) {
       console.error('Failed to load messages:', err);
@@ -36,7 +45,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [room]);
+  }, [room, username]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -69,7 +78,16 @@ export const useChat = ({ username, room }: UseChatProps) => {
   // Set up message listeners
   useEffect(() => {
     socketService.onReceiveMessage((message: Message) => {
+      console.log('Received message via socket:', message);
+      console.log('Message status:', message.status);
       setMessages(prev => [...prev, message]);
+      
+      // Auto-mark message as read if it's not from current user
+      if (message.user !== username) {
+        setTimeout(() => {
+          socketService.markMessageAsRead(message._id, username);
+        }, 1000); // Mark as read after 1 second
+      }
     });
 
     socketService.onUserJoined((data) => {
@@ -101,6 +119,46 @@ export const useChat = ({ username, room }: UseChatProps) => {
 
     socketService.onRoomUsersUpdated((data) => {
       setOnlineUsers(data.users);
+    });
+
+    // Handle message delivery status
+    socketService.onMessageDelivered((data) => {
+      setMessages(prev => prev.map(msg => 
+        msg._id === data.messageId 
+          ? { 
+              ...msg, 
+              status: { 
+                sent: true,
+                delivered: true,
+                read: msg.status?.read || false,
+                deliveredAt: data.deliveredAt,
+                readAt: msg.status?.readAt || null,
+                deliveredTo: data.deliveredTo,
+                readBy: msg.status?.readBy || []
+              }
+            }
+          : msg
+      ));
+    });
+
+    // Handle message read status
+    socketService.onMessageRead((data) => {
+      setMessages(prev => prev.map(msg => 
+        msg._id === data.messageId 
+          ? { 
+              ...msg, 
+              status: { 
+                sent: true,
+                delivered: msg.status?.delivered || true,
+                read: true,
+                deliveredAt: msg.status?.deliveredAt || null,
+                readAt: data.readAt,
+                deliveredTo: msg.status?.deliveredTo || [],
+                readBy: [...(msg.status?.readBy || []), data.readBy]
+              }
+            }
+          : msg
+      ));
     });
 
     socketService.onError((error) => {
@@ -153,6 +211,18 @@ export const useChat = ({ username, room }: UseChatProps) => {
     }, 1000);
   }, [sendTyping]);
 
+  // Mark messages as read when user focuses/opens chat
+  const markMessagesAsRead = useCallback(() => {
+    const unreadMessages = messages.filter(
+      msg => msg.user !== username && !msg.status?.readBy?.includes(username)
+    );
+    
+    if (unreadMessages.length > 0) {
+      const messageIds = unreadMessages.map(msg => msg._id);
+      socketService.markMessagesAsReadBulk(messageIds, username);
+    }
+  }, [messages, username]);
+
   return {
     messages,
     isConnected,
@@ -162,6 +232,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
     onlineUsers,
     sendMessage,
     handleTyping,
-    loadMessages
+    loadMessages,
+    markMessagesAsRead
   };
 };

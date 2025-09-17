@@ -26,6 +26,7 @@ export interface GetMessagesParams {
   limit?: number;
   skip?: number;
   room?: string;
+  userId?: string;
 }
 
 class ApiService {

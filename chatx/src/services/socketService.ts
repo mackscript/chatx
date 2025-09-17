@@ -1,6 +1,16 @@
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL } from "./config";
 
+export interface MessageStatus {
+  sent: boolean;
+  delivered: boolean;
+  read: boolean;
+  deliveredAt: string | null;
+  readAt: string | null;
+  deliveredTo: string[];
+  readBy: string[];
+}
+
 export interface Message {
   _id: string;
   message: string;
@@ -8,6 +18,7 @@ export interface Message {
   room: string;
   timestamp: string;
   socketId?: string;
+  status?: MessageStatus;
 }
 
 export interface OnlineUser {
@@ -33,6 +44,17 @@ export interface SocketEvents {
     socketId: string;
   }) => void;
   room_users_updated: (data: { users: OnlineUser[]; count: number }) => void;
+  message_delivered: (data: {
+    messageId: string;
+    deliveredTo: string[];
+    deliveredAt: string;
+  }) => void;
+  message_read: (data: {
+    messageId: string;
+    readBy: string;
+    readAt: string;
+    originalSender: string;
+  }) => void;
   error: (error: { message: string; error?: string }) => void;
 }
 
@@ -141,6 +163,42 @@ class SocketService {
   onError(callback: (error: { message: string; error?: string }) => void): void {
     if (this.socket) {
       this.socket.on("error", callback);
+    }
+  }
+
+  // Message status event handlers
+  onMessageDelivered(callback: (data: {
+    messageId: string;
+    deliveredTo: string[];
+    deliveredAt: string;
+  }) => void): void {
+    if (this.socket) {
+      this.socket.on("message_delivered", callback);
+    }
+  }
+
+  onMessageRead(callback: (data: {
+    messageId: string;
+    readBy: string;
+    readAt: string;
+    originalSender: string;
+  }) => void): void {
+    if (this.socket) {
+      this.socket.on("message_read", callback);
+    }
+  }
+
+  // Mark message as read
+  markMessageAsRead(messageId: string, userId: string): void {
+    if (this.socket) {
+      this.socket.emit("mark_message_read", { messageId, userId });
+    }
+  }
+
+  // Mark multiple messages as read (bulk operation)
+  markMessagesAsReadBulk(messageIds: string[], userId: string): void {
+    if (this.socket) {
+      this.socket.emit("mark_messages_read_bulk", { messageIds, userId });
     }
   }
 

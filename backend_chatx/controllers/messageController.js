@@ -25,26 +25,47 @@ export class MessageController {
 
   // GET /api/messages - Get all messages
   getAllMessages = asyncHandler(async (req, res) => {
-    const { limit = 50, skip = 0, room } = req.query;
+    const { limit = 50, skip = 0, room, userId } = req.query;
 
     // Convert query params to numbers
     const limitNum = parseInt(limit);
     const skipNum = parseInt(skip);
 
-    // Filter out messages older than 24 hours
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const filter = { timestamp: { $gte: twentyFourHoursAgo } };
+    let messages;
     
-    if (room) {
-      filter.room = room;
-    }
+    if (room && userId) {
+      // Use the new method that includes status information
+      messages = await this.messageModel.getMessagesWithStatus(room, userId, limitNum, skipNum);
+    } else {
+      // Fallback to regular method but ensure status field exists
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const filter = { timestamp: { $gte: twentyFourHoursAgo } };
+      
+      if (room) {
+        filter.room = room;
+      }
 
-    const messages = await this.messageModel.collection
-      .find(filter)
-      .sort({ timestamp: -1 })
-      .limit(limitNum)
-      .skip(skipNum)
-      .toArray();
+      const rawMessages = await this.messageModel.collection
+        .find(filter)
+        .sort({ timestamp: -1 })
+        .limit(limitNum)
+        .skip(skipNum)
+        .toArray();
+
+      // Ensure all messages have a status field
+      messages = rawMessages.map(msg => ({
+        ...msg,
+        status: msg.status || {
+          sent: true,
+          delivered: false,
+          read: false,
+          deliveredAt: null,
+          readAt: null,
+          deliveredTo: [],
+          readBy: []
+        }
+      }));
+    }
 
     res.status(200).json({
       success: true,

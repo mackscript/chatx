@@ -71,14 +71,36 @@ export const setupSocketHandlers = (io, db) => {
         });
 
         // Emit to all users in the room (including sender)
-        io.to(room).emit('receive_message', {
+        const messagePayload = {
           _id: newMessage._id,
           message: newMessage.message,
           user: newMessage.user,
           room: newMessage.room,
           timestamp: newMessage.timestamp,
-          socketId: socket.id
-        });
+          socketId: socket.id,
+          status: newMessage.status
+        };
+
+        console.log('📤 Emitting message with status:', messagePayload);
+        io.to(room).emit('receive_message', messagePayload);
+
+        // Auto-mark as delivered to all online users in the room (except sender)
+        const roomUsersList = roomUsers.get(room) || new Set();
+        const onlineUsers = Array.from(roomUsersList).filter(u => u.username !== user);
+        
+        // Mark as delivered for all online users
+        for (const onlineUser of onlineUsers) {
+          await messageModel.markAsDelivered(newMessage._id, onlineUser.username);
+        }
+
+        // Emit delivery status update to sender
+        if (onlineUsers.length > 0) {
+          socket.emit('message_delivered', {
+            messageId: newMessage._id,
+            deliveredTo: onlineUsers.map(u => u.username),
+            deliveredAt: new Date()
+          });
+        }
 
         console.log(`💬 Message sent in room ${room}: ${user}: ${message}`);
 
@@ -99,6 +121,67 @@ export const setupSocketHandlers = (io, db) => {
         isTyping,
         socketId: socket.id
       });
+    });
+
+    // Handle message read receipts
+    socket.on('mark_message_read', async (data) => {
+      try {
+        const { messageId, userId } = data;
+        
+        // Mark message as read in database
+        await messageModel.markAsRead(messageId, userId);
+        
+        // Get the message to find the sender
+        const message = await messageModel.getById(messageId);
+        if (message) {
+          // Emit read receipt to the message sender and room
+          io.to(message.room).emit('message_read', {
+            messageId: messageId,
+            readBy: userId,
+            readAt: new Date(),
+            originalSender: message.user
+          });
+        }
+        
+        console.log(`📖 Message ${messageId} marked as read by ${userId}`);
+      } catch (error) {
+        console.error('Error marking message as read:', error);
+        socket.emit('error', { 
+          message: 'Failed to mark message as read',
+          error: error.message 
+        });
+      }
+    });
+
+    // Handle bulk mark messages as read (when user opens/focuses chat)
+    socket.on('mark_messages_read_bulk', async (data) => {
+      try {
+        const { messageIds, userId } = data;
+        
+        for (const messageId of messageIds) {
+          await messageModel.markAsRead(messageId, userId);
+          
+          // Get the message to find the sender
+          const message = await messageModel.getById(messageId);
+          if (message) {
+            // Emit read receipt to the message sender and room
+            io.to(message.room).emit('message_read', {
+              messageId: messageId,
+              readBy: userId,
+              readAt: new Date(),
+              originalSender: message.user
+            });
+          }
+        }
+        
+        console.log(`📖 ${messageIds.length} messages marked as read by ${userId}`);
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+        socket.emit('error', { 
+          message: 'Failed to mark messages as read',
+          error: error.message 
+        });
+      }
     });
 
     // Handle disconnection

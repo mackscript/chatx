@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useChat } from "../hooks/useChat";
+import MessageStatus from "./MessageStatus";
 
 interface ChatroomProps {
   username: string;
@@ -20,6 +21,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     onlineUsers,
     sendMessage,
     handleTyping,
+    markMessagesAsRead,
   } = useChat({ username, room });
 
   const scrollToBottom = () => {
@@ -29,6 +31,23 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Mark messages as read when component is focused or messages change
+  useEffect(() => {
+    const handleFocus = () => {
+      markMessagesAsRead();
+    };
+
+    // Mark messages as read when component mounts or messages change
+    markMessagesAsRead();
+
+    // Listen for window focus events
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [markMessagesAsRead]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +69,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       hour12: true,
     });
   };
-
+  console.log("Messages with status:", messages);
   return (
     <div className="h-[95vh] flex flex-col">
       {/* Header */}
@@ -172,15 +191,23 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     </p>
                   )}
                   <p className="text-sm">{message.message}</p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.user === username
-                        ? "text-blue-100"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {formatTime(message.timestamp)}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p
+                      className={`text-xs ${
+                        message.user === username
+                          ? "text-blue-100"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {formatTime(message.timestamp)}
+                    </p>
+
+                    <MessageStatus
+                      status={message.status}
+                      isOwnMessage={message.user === username}
+                      className="ml-2"
+                    />
+                  </div>
                 </div>
               </div>
             ))

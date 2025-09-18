@@ -28,7 +28,7 @@ const Home = () => {
     navigator.clipboard.writeText(url);
   };
   return (
-    <div className="min-h-screen items-center justify-center px-6">
+    <div className="flex-1 items-center justify-center px-6 pb-8">
       <header className="px-6 py-4 border-b border-gray-800">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">

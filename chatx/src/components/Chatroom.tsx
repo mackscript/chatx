@@ -19,7 +19,10 @@ interface ChatroomProps {
 
 const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   const [newMessage, setNewMessage] = useState("");
-  const [selectedImage, setSelectedImage] = useState<{data: string, fileName: string} | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    data: string;
+    fileName: string;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
@@ -78,11 +81,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   };
 
   const handleMessageClick = (message: Message) => {
-    startReply(message);
+    // startReply(message);
   };
 
   const handleMessageKeyDown = (e: React.KeyboardEvent, message: Message) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       startReply(message);
     }
@@ -113,25 +116,25 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   };
   // Theme-aware styles
   const getThemeStyles = () => {
-    if (theme === 'light') {
+    if (theme === "light") {
       return {
-        container: 'bg-white',
-        header: 'bg-white/80 backdrop-blur-sm border-b border-gray-200',
-        headerText: 'text-gray-900',
-        headerSecondary: 'text-gray-600',
-        button: 'hover:bg-gray-100',
-        buttonText: 'text-gray-600 hover:text-gray-900'
+        container: "bg-white",
+        header: "bg-white/80 backdrop-blur-sm border-b border-gray-200",
+        headerText: "text-gray-900",
+        headerSecondary: "text-gray-600",
+        button: "hover:bg-gray-100",
+        buttonText: "text-gray-600 hover:text-gray-900",
       };
     }
-    
+
     // Default to dark theme
     return {
-      container: 'bg-gray-900',
-      header: 'bg-gray-900/80 backdrop-blur-sm border-b border-gray-800',
-      headerText: 'text-white',
-      headerSecondary: 'text-gray-400',
-      button: 'hover:bg-gray-800',
-      buttonText: 'text-gray-400 hover:text-white'
+      container: "bg-gray-900",
+      header: "bg-gray-900/80 backdrop-blur-sm border-b border-gray-800",
+      headerText: "text-white",
+      headerSecondary: "text-gray-400",
+      button: "hover:bg-gray-800",
+      buttonText: "text-gray-400 hover:text-white",
     };
   };
 
@@ -139,24 +142,24 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
   // Helper function for message bubble styling
   const getMessageBubbleClass = (isOwnMessage: boolean) => {
-    const baseClasses = "max-w-xs lg:max-w-md px-4 py-3 rounded-xl cursor-pointer hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50";
-    
+    const baseClasses =
+      "max-w-xs lg:max-w-md px-4 py-3 rounded-xl cursor-pointer hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50";
+
     if (isOwnMessage) {
       return `${baseClasses} bg-gradient-to-r from-blue-500 to-violet-600 text-white focus:ring-blue-400`;
     }
-    
-    if (theme === 'light') {
+
+    if (theme === "light") {
       return `${baseClasses} bg-gray-100 text-gray-900 border border-gray-200 focus:ring-gray-400`;
     }
-    
+
     return `${baseClasses} bg-gray-800 text-white focus:ring-gray-400`;
   };
 
   return (
     <div className={`h-[95vh] flex flex-col ${themeStyles.container} relative`}>
-      
       {/* Header */}
-      <header className={themeStyles.header + ' p-4'}>
+      <header className={themeStyles.header + " p-4"}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -178,8 +181,12 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               </svg>
             </button>
             <div>
-              <h1 className={`text-xl font-semibold ${themeStyles.headerText}`}>ChatRoom</h1>
-              <div className={`flex items-center gap-1 text-sm ${themeStyles.headerSecondary}`}>
+              <h1 className={`text-xl font-semibold ${themeStyles.headerText}`}>
+                ChatRoom
+              </h1>
+              <div
+                className={`flex items-center gap-1 text-sm ${themeStyles.headerSecondary}`}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="13"
@@ -203,7 +210,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 </div>
                 {onlineUsers.length > 0 && (
                   <div className="flex items-center space-x-1">
-                    <span className={`text-xs ${themeStyles.headerSecondary}`}>•</span>
+                    <span className={`text-xs ${themeStyles.headerSecondary}`}>
+                      •
+                    </span>
                     <div className="flex -space-x-1">
                       {onlineUsers.slice(0, 3).map((user) => (
                         <div
@@ -215,11 +224,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         </div>
                       ))}
                       {onlineUsers.length > 3 && (
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
-                          theme === 'light'
-                            ? 'bg-gray-300 text-gray-700 border-gray-200'
-                            : 'bg-gray-700 text-gray-300 border-gray-900'
-                        }`}>
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
+                            theme === "light"
+                              ? "bg-gray-300 text-gray-700 border-gray-200"
+                              : "bg-gray-700 text-gray-300 border-gray-900"
+                          }`}
+                        >
                           +{onlineUsers.length - 3}
                         </div>
                       )}
@@ -241,7 +252,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 {isConnected ? "Connected" : "Disconnected"}
               </span>
             </div>
-            
+
             {/* Theme Dropdown */}
             <ThemeDropdown />
           </div>
@@ -284,24 +295,29 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     title="Click or swipe to reply to this message"
                   >
                     {message.user !== username && (
-                      <p className={`text-xs mb-1 font-medium ${
-                        theme === 'light'
-                          ? 'text-gray-600'
-                          : 'text-purple-300'
-                      }`}>
+                      <p
+                        className={`text-xs mb-1 font-medium ${
+                          theme === "light"
+                            ? "text-gray-600"
+                            : "text-purple-300"
+                        }`}
+                      >
                         {message.user}
                       </p>
                     )}
-                    
+
                     {/* Show reply information if this message is a reply */}
                     {message.replyTo && (
-                      <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
+                      <ReplyDisplay
+                        replyTo={message.replyTo}
+                        className="mb-2"
+                      />
                     )}
-                    
+
                     {/* Display message content based on type */}
-                    {message.messageType === 'image' ? (
-                      <ImageMessage 
-                        imageData={message.imageData || ''} 
+                    {message.messageType === "image" ? (
+                      <ImageMessage
+                        imageData={message.imageData || ""}
                         caption={message.message}
                       />
                     ) : (
@@ -333,11 +349,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
           {/* Typing Indicators */}
           {typingUsers.length > 0 && (
             <div className="flex justify-start">
-              <div className={`px-4 py-2 rounded-xl text-sm ${
-                theme === 'light'
-                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
-                  : 'bg-gray-800 text-gray-400'
-              }`}>
+              <div
+                className={`px-4 py-2 rounded-xl text-sm ${
+                  theme === "light"
+                    ? "bg-gray-100 text-gray-600 border border-gray-200"
+                    : "bg-gray-800 text-gray-400"
+                }`}
+              >
                 {typingUsers.map((u) => u.user).join(", ")}{" "}
                 {typingUsers.length === 1 ? "is" : "are"} typing...
               </div>
@@ -349,27 +367,29 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       </div>
 
       {/* Message Input */}
-      <div className={`chat-input-area backdrop-blur-sm border-t p-4 ${
-        theme === 'light'
-          ? 'bg-white/80 border-gray-200'
-          : 'bg-gray-900/80 border-gray-800'
-      }`}>
+      <div
+        className={`chat-input-area backdrop-blur-sm border-t p-4 ${
+          theme === "light"
+            ? "bg-white/80 border-gray-200"
+            : "bg-gray-900/80 border-gray-800"
+        }`}
+      >
         <div className="max-w-4xl mx-auto">
           {/* Reply Preview */}
           {replyingTo && (
             <ReplyPreview replyingTo={replyingTo} onCancel={cancelReply} />
           )}
-          
+
           {/* Image Preview */}
           {selectedImage && (
-            <ImagePreview 
+            <ImagePreview
               imageData={selectedImage.data}
               fileName={selectedImage.fileName}
               onSend={handleImageSend}
               onCancel={handleImageCancel}
             />
           )}
-          
+
           <form
             onSubmit={handleSendMessage}
             className="flex items-center space-x-4"
@@ -384,9 +404,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 disabled={!isConnected}
                 rows={1}
                 className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all disabled:opacity-50 resize-none overflow-hidden ${
-                  theme === 'light'
-                    ? 'bg-white text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-500'
-                    : 'bg-gray-800 text-white border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-400'
+                  theme === "light"
+                    ? "bg-white text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-500"
+                    : "bg-gray-800 text-white border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-400"
                 }`}
                 style={{
                   minHeight: "48px",
@@ -401,7 +421,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 }}
               />
             </div>
-            <ImageUpload 
+            <ImageUpload
               onImageSelect={handleImageSelect}
               disabled={!isConnected}
             />

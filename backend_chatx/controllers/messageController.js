@@ -27,44 +27,56 @@ export class MessageController {
   getAllMessages = asyncHandler(async (req, res) => {
     const { limit = 50, skip = 0, room, userId } = req.query;
 
+    // Debug logging
+    console.log('📥 getAllMessages called with:', { limit, skip, room, userId });
+
     // Convert query params to numbers
     const limitNum = parseInt(limit);
     const skipNum = parseInt(skip);
 
     let messages;
     
-    if (room && userId) {
-      // Use the new method that includes status information
-      messages = await this.messageModel.getMessagesWithStatus(room, userId, limitNum, skipNum);
-    } else {
-      // Fallback to regular method but ensure status field exists
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const filter = { timestamp: { $gte: twentyFourHoursAgo } };
+    if (room) {
+      console.log('🔍 Fetching messages for room:', room);
       
-      if (room) {
-        filter.room = room;
+      if (userId) {
+        console.log('👤 Including user status for userId:', userId);
+        // Use the method that includes status information for specific user
+        messages = await this.messageModel.getMessagesWithStatus(room, userId, limitNum, skipNum);
+      } else {
+        console.log('📋 Fetching all messages for room without user-specific status');
+        // Get messages by room only with 24-hour filter
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const filter = { 
+          room: room,
+          timestamp: { $gte: twentyFourHoursAgo } 
+        };
+
+        const rawMessages = await this.messageModel.collection
+          .find(filter)
+          .sort({ timestamp: -1 })
+          .limit(limitNum)
+          .skip(skipNum)
+          .toArray();
+
+        // Ensure all messages have a status field
+        messages = rawMessages.map(msg => ({
+          ...msg,
+          status: msg.status || {
+            sent: true,
+            delivered: false,
+            read: false,
+            deliveredAt: null,
+            readAt: null,
+            deliveredTo: [],
+            readBy: []
+          }
+        }));
       }
-
-      const rawMessages = await this.messageModel.collection
-        .find(filter)
-        .sort({ timestamp: -1 })
-        .limit(limitNum)
-        .skip(skipNum)
-        .toArray();
-
-      // Ensure all messages have a status field
-      messages = rawMessages.map(msg => ({
-        ...msg,
-        status: msg.status || {
-          sent: true,
-          delivered: false,
-          read: false,
-          deliveredAt: null,
-          readAt: null,
-          deliveredTo: [],
-          readBy: []
-        }
-      }));
+      console.log('📊 Found messages:', messages.length);
+    } else {
+      console.log('❌ No room specified, returning empty array');
+      messages = [];
     }
 
     res.status(200).json({

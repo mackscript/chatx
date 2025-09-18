@@ -40,8 +40,18 @@ class ApiService {
   async getMessages(
     params: GetMessagesParams = {},
   ): Promise<ApiResponse<Message[]>> {
-    const response = await apiClient.get("/messages", { params });
-    return response.data;
+    console.log('🌐 Making API request to /messages with params:', params);
+    console.log('🔗 API Base URL:', API_BASE_URL);
+    
+    try {
+      const response = await apiClient.get("/messages", { params });
+      console.log('📡 API Response status:', response.status);
+      console.log('📊 API Response data:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('🚨 API Request failed:', error);
+      throw error;
+    }
   }
 
   async getMessageById(id: string): Promise<ApiResponse<Message>> {

@@ -9,6 +9,7 @@ import ImageUpload from "./ImageUpload";
 import ImagePreview from "./ImagePreview";
 import ImageMessage from "./ImageMessage";
 import ThemeDropdown from "./ThemeDropdown";
+import SwipeableMessage from "./SwipeableMessage";
 
 interface ChatroomProps {
   username: string;
@@ -269,57 +270,62 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   message.user === username ? "justify-end" : "justify-start"
                 }`}
               >
-                <div
-                  className={getMessageBubbleClass(message.user === username)}
-                  onClick={() => handleMessageClick(message)}
-                  onKeyDown={(e) => handleMessageKeyDown(e, message)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Reply to message from ${message.user}: ${message.message}`}
-                  title="Click to reply to this message"
+                <SwipeableMessage
+                  onSwipeReply={() => startReply(message)}
+                  isOwnMessage={message.user === username}
                 >
-                  {message.user !== username && (
-                    <p className={`text-xs mb-1 font-medium ${
-                      theme === 'light'
-                        ? 'text-gray-600'
-                        : 'text-purple-300'
-                    }`}>
-                      {message.user}
-                    </p>
-                  )}
-                  
-                  {/* Show reply information if this message is a reply */}
-                  {message.replyTo && (
-                    <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
-                  )}
-                  
-                  {/* Display message content based on type */}
-                  {message.messageType === 'image' ? (
-                    <ImageMessage 
-                      imageData={message.imageData || ''} 
-                      caption={message.message}
-                    />
-                  ) : (
-                    <p className="text-sm">{message.message}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-1">
-                    <p
-                      className={`text-xs ${
-                        message.user === username
-                          ? "text-blue-100"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {formatTime(message.timestamp)}
-                    </p>
+                  <div
+                    className={getMessageBubbleClass(message.user === username)}
+                    onClick={() => handleMessageClick(message)}
+                    onKeyDown={(e) => handleMessageKeyDown(e, message)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Reply to message from ${message.user}: ${message.message}`}
+                    title="Click or swipe to reply to this message"
+                  >
+                    {message.user !== username && (
+                      <p className={`text-xs mb-1 font-medium ${
+                        theme === 'light'
+                          ? 'text-gray-600'
+                          : 'text-purple-300'
+                      }`}>
+                        {message.user}
+                      </p>
+                    )}
+                    
+                    {/* Show reply information if this message is a reply */}
+                    {message.replyTo && (
+                      <ReplyDisplay replyTo={message.replyTo} className="mb-2" />
+                    )}
+                    
+                    {/* Display message content based on type */}
+                    {message.messageType === 'image' ? (
+                      <ImageMessage 
+                        imageData={message.imageData || ''} 
+                        caption={message.message}
+                      />
+                    ) : (
+                      <p className="text-sm">{message.message}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <p
+                        className={`text-xs ${
+                          message.user === username
+                            ? "text-blue-100"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {formatTime(message.timestamp)}
+                      </p>
 
-                    <MessageStatus
-                      status={message.status}
-                      isOwnMessage={message.user === username}
-                      className="ml-2"
-                    />
+                      <MessageStatus
+                        status={message.status}
+                        isOwnMessage={message.user === username}
+                        className="ml-2"
+                      />
+                    </div>
                   </div>
-                </div>
+                </SwipeableMessage>
               </div>
             ))
           )}

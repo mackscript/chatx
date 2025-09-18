@@ -93,12 +93,36 @@ export class Message {
 
   // Get messages with their delivery/read status for a specific user
   async getMessagesWithStatus(room, userId, limit = 100, skip = 0) {
+    // Filter messages to only include those from the last 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    console.log('🔍 getMessagesWithStatus called with:', { room, userId, limit, skip });
+    console.log('⏰ Looking for messages after:', twentyFourHoursAgo);
+    
+    // First, let's see what rooms exist in the database
+    const allRooms = await this.collection.distinct('room');
+    console.log('🏠 All rooms in database:', allRooms);
+    console.log('🔍 Looking for room:', `"${room}"`);
+    
     const messages = await this.collection
-      .find({ room })
+      .find({ 
+        room,
+        timestamp: { $gte: twentyFourHoursAgo } // Only get messages from last 24 hours
+      })
       .sort({ timestamp: -1 })
       .limit(limit)
       .skip(skip)
       .toArray();
+      
+    console.log('📊 Raw messages found:', messages.length);
+    if (messages.length > 0) {
+      console.log('📝 Sample message:', {
+        room: messages[0].room,
+        user: messages[0].user,
+        message: messages[0].message?.substring(0, 50),
+        timestamp: messages[0].timestamp
+      });
+    }
 
     // Add status information for each message
     return messages.map(message => ({

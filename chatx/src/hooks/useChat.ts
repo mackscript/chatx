@@ -32,19 +32,28 @@ export const useChat = ({ username, room }: UseChatProps) => {
   const loadMessages = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log('🔄 Loading messages for room:', room, 'user:', username);
+      
       const response = await apiService.getMessages({ 
         room, 
-        limit: 50, 
-        userId: username 
+        limit: 50
+        // Removed userId to fetch messages by room only
       });
+      
+      console.log('📥 API Response:', response);
+      
       if (response.success) {
+        console.log('✅ Messages loaded successfully:', response.data.length, 'messages');
         // Reverse to show oldest first
         const reversedMessages = [...response.data].reverse();
         setMessages(reversedMessages);
+      } else {
+        console.error('❌ API returned error:', response);
+        setError('Failed to load messages: ' + (response.message || 'Unknown error'));
       }
     } catch (err) {
-      console.error('Failed to load messages:', err);
-      setError('Failed to load messages');
+      console.error('❌ Failed to load messages:', err);
+      setError('Failed to load messages: ' + (err instanceof Error ? err.message : 'Network error'));
     } finally {
       setIsLoading(false);
     }

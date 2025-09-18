@@ -67,11 +67,19 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     };
   }, [markMessagesAsRead]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      await sendMessage(newMessage);
+    const messageText = newMessage.trim();
+    if (messageText) {
+      // Clear input immediately for better UX
       setNewMessage("");
+      
+      // Send message without awaiting (fire and forget)
+      sendMessage(messageText).catch((error) => {
+        console.error('Failed to send message:', error);
+        // Optionally restore the message text on error
+        setNewMessage(messageText);
+      });
     }
   };
 
@@ -97,9 +105,20 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
   const handleImageSend = () => {
     if (selectedImage) {
-      sendImageMessage(selectedImage.data, newMessage);
+      const imageData = selectedImage.data;
+      const caption = newMessage;
+      
+      // Clear UI immediately
       setSelectedImage(null);
       setNewMessage("");
+      
+      // Send image without blocking UI
+      sendImageMessage(imageData, caption).catch((error) => {
+        console.error('Failed to send image:', error);
+        // Optionally restore on error
+        setSelectedImage({ data: imageData, fileName: selectedImage.fileName });
+        setNewMessage(caption);
+      });
     }
   };
 
@@ -120,13 +139,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   // Helper function for message bubble styling
   const getMessageBubbleClass = (isOwnMessage: boolean) => {
     const baseClasses =
-      "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50 backdrop-blur-sm";
+      "max-w-xs lg:max-w-md px-4 py-3 cursor-pointer hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50 backdrop-blur-sm relative";
 
     if (isOwnMessage) {
-      return `${baseClasses} ${currentTheme.messageOwn} text-white focus:ring-white/20 shadow-lg hover:shadow-xl hover:scale-[1.02]`;
+      return `${baseClasses} ${currentTheme.messageOwn} text-white focus:ring-white/20 shadow-lg hover:shadow-xl hover:scale-[1.02] rounded-2xl rounded-br-md ml-auto`;
     }
 
-    return `${baseClasses} ${currentTheme.messageOther} ${currentTheme.messageOtherText} focus:ring-gray-400/20 hover:scale-[1.01]`;
+    return `${baseClasses} ${currentTheme.messageOther} ${currentTheme.messageOtherText} focus:ring-gray-400/20 hover:scale-[1.01] rounded-2xl rounded-bl-md mr-auto`;
   };
 
   return (
@@ -247,66 +266,93 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             messages.map((message) => (
               <div
                 key={message._id}
-                className={`flex ${
-                  message.user === username ? "justify-end" : "justify-start"
+                className={`flex mb-4 ${
+                  message.user === username 
+                    ? "justify-end pl-12" 
+                    : "justify-start pr-12"
                 }`}
               >
-                <SwipeableMessage
-                  onSwipeReply={() => startReply(message)}
-                  isOwnMessage={message.user === username}
-                >
-                  <div
-                    className={getMessageBubbleClass(message.user === username)}
-                    onClick={() => handleMessageClick(message)}
-                    onKeyDown={(e) => handleMessageKeyDown(e, message)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Reply to message from ${message.user}: ${message.message}`}
-                    title="Click or swipe to reply to this message"
-                  >
-                    {message.user !== username && (
-                      <p
-                        className={`text-xs mb-1 font-medium ${currentTheme.textSecondary}`}
-                      >
-                        {message.user}
-                      </p>
-                    )}
-                    {/* Show reply information if this message is a reply */}
-                    {message.replyTo && (
-                      <ReplyDisplay
-                        replyTo={message.replyTo}
-                        className="mb-2"
-                      />
-                    )}
-                    {/* Display message content based on type */}
-                    {message.messageType === "image" ? (
-                      <ImageMessage
-                        imageData={message.imageData || ""}
-                        caption={message.message}
-                      />
-                    ) : (
-                      <p className="text-sm">{message.message}</p>
-                    )}
-
-                    <div className="flex items-center justify-between mt-1">
-                      <p
-                        className={`text-xs ${
-                          message.user === username
-                            ? "text-white/80"
-                            : currentTheme.textSecondary
-                        }`}
-                      >
-                        {formatTime(message.timestamp)}
-                      </p>
-
-                      <MessageStatus
-                        status={message.status}
-                        isOwnMessage={message.user === username}
-                        className="ml-2"
-                      />
+                <div className={`flex items-end space-x-2 ${
+                  message.user === username ? "flex-row-reverse space-x-reverse" : ""
+                }`}>
+                  {/* Avatar for other users */}
+                  {message.user !== username && (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
+                      {message.user.charAt(0).toUpperCase()}
                     </div>
-                  </div>
-                </SwipeableMessage>
+                  )}
+                  
+                  <SwipeableMessage
+                    onSwipeReply={() => startReply(message)}
+                    isOwnMessage={message.user === username}
+                  >
+                    <div className="flex flex-col">
+                      {/* Username for other users */}
+                      {message.user !== username && (
+                        <p className={`text-xs mb-1 font-medium ${currentTheme.textSecondary} ml-1`}>
+                          {message.user}
+                        </p>
+                      )}
+                      
+                      <div
+                        className={getMessageBubbleClass(message.user === username)}
+                        onClick={() => handleMessageClick(message)}
+                        onKeyDown={(e) => handleMessageKeyDown(e, message)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Reply to message from ${message.user}: ${message.message}`}
+                        title="Click or swipe to reply to this message"
+                      >
+                        {/* Show reply information if this message is a reply */}
+                        {message.replyTo && (
+                          <ReplyDisplay
+                            replyTo={message.replyTo}
+                            className="mb-2"
+                          />
+                        )}
+                        
+                        {/* Display message content based on type */}
+                        {message.messageType === "image" ? (
+                          <ImageMessage
+                            imageData={message.imageData || ""}
+                            caption={message.message}
+                          />
+                        ) : (
+                          <p className="text-sm leading-relaxed">{message.message}</p>
+                        )}
+
+                        <div className={`flex items-center mt-2 ${
+                          message.user === username ? "justify-end" : "justify-start"
+                        }`}>
+                          <p
+                            className={`text-xs ${
+                              message.user === username
+                                ? "text-white/70"
+                                : currentTheme.textSecondary
+                            }`}
+                          >
+                            {formatTime(message.timestamp)}
+                          </p>
+
+                          {message.user === username && (
+                            <MessageStatus
+                              status={message.status}
+                              isOwnMessage={true}
+                              className="ml-2"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </SwipeableMessage>
+                  
+                  {/* Your avatar (optional, can be removed if you don't want it) */}
+                  {message.user === username && (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
+                      You
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -355,6 +401,12 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               <textarea
                 value={newMessage}
                 onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
                 placeholder={
                   isConnected ? "Type your message..." : "Connecting..."
                 }

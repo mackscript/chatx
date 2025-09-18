@@ -194,104 +194,110 @@ export const useChat = ({ username, room }: UseChatProps) => {
     };
   }, [username]);
 
-  const sendMessage = useCallback(async (messageText: string) => {
-    if (!messageText.trim() || !isConnected) return;
+  const sendMessage = useCallback((messageText: string) => {
+    if (!messageText.trim() || !isConnected) {
+      return Promise.reject(new Error('Cannot send message: not connected or empty message'));
+    }
 
-    try {
-      // Prepare message data
-      interface MessageData {
-        message: string;
-        user: string;
-        room: string;
-        messageType?: 'text' | 'image';
-        imageData?: string;
-        replyTo?: {
-          messageId: string;
+    return new Promise<void>((resolve, reject) => {
+      try {
+        // Prepare message data
+        interface MessageData {
           message: string;
           user: string;
+          room: string;
+          messageType?: 'text' | 'image';
+          imageData?: string;
+          replyTo?: {
+            messageId: string;
+            message: string;
+            user: string;
+          };
+        }
+
+        const messageData: MessageData = {
+          message: messageText.trim(),
+          user: username,
+          room,
+          messageType: 'text'
         };
+
+        // Add reply information if replying to a message
+        if (replyingTo) {
+          messageData.replyTo = {
+            messageId: replyingTo._id,
+            message: replyingTo.message,
+            user: replyingTo.user
+          };
+        }
+
+        // Send via Socket.IO for real-time delivery (non-blocking)
+        socketService.sendMessage(messageData);
+
+        // Clear reply state after sending
+        setReplyingTo(null);
+        
+        // Resolve immediately since Socket.IO is fire-and-forget
+        resolve();
+      } catch (err) {
+        console.error('Failed to send message:', err);
+        setError('Failed to send message');
+        reject(err instanceof Error ? err : new Error('Failed to send message'));
       }
-
-      const messageData: MessageData = {
-        message: messageText.trim(),
-        user: username,
-        room,
-        messageType: 'text'
-      };
-
-      // Add reply information if replying to a message
-      if (replyingTo) {
-        console.log('🔄 Sending reply to:', replyingTo);
-        messageData.replyTo = {
-          messageId: replyingTo._id,
-          message: replyingTo.message,
-          user: replyingTo.user
-        };
-        console.log('📤 Message data with reply:', messageData);
-      }
-
-      // Send via Socket.IO for real-time delivery
-      socketService.sendMessage(messageData);
-
-      // Clear reply state after sending
-      setReplyingTo(null);
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      setError('Failed to send message');
-    }
+    });
   }, [username, room, isConnected, replyingTo]);
 
-  const sendImageMessage = useCallback(async (imageData: string, caption: string = '') => {
-    if (!isConnected) return;
+  const sendImageMessage = useCallback((imageData: string, caption: string = '') => {
+    if (!isConnected) {
+      return Promise.reject(new Error('Cannot send image: not connected'));
+    }
 
-    try {
-      console.log('📤 Sending image message:', {
-        captionLength: caption.length,
-        imageDataSize: (imageData.length / (1024 * 1024)).toFixed(2) + 'MB (Base64)',
-        hasReply: !!replyingTo
-      });
-
-      interface ImageMessageData {
-        message: string;
-        user: string;
-        room: string;
-        messageType: 'image';
-        imageData: string;
-        replyTo?: {
-          messageId: string;
+    return new Promise<void>((resolve, reject) => {
+      try {
+        interface ImageMessageData {
           message: string;
           user: string;
+          room: string;
+          messageType: 'image';
+          imageData: string;
+          replyTo?: {
+            messageId: string;
+            message: string;
+            user: string;
+          };
+        }
+
+        const messageData: ImageMessageData = {
+          message: caption,
+          user: username,
+          room,
+          messageType: 'image',
+          imageData
         };
+
+        // Add reply information if replying to a message
+        if (replyingTo) {
+          messageData.replyTo = {
+            messageId: replyingTo._id,
+            message: replyingTo.message,
+            user: replyingTo.user
+          };
+        }
+
+        // Send via Socket.IO for real-time delivery (non-blocking)
+        socketService.sendMessage(messageData);
+
+        // Clear reply state after sending
+        setReplyingTo(null);
+        
+        // Resolve immediately since Socket.IO is fire-and-forget
+        resolve();
+      } catch (err) {
+        console.error('❌ Failed to send image:', err);
+        setError('Failed to send image. The image might be too large.');
+        reject(err instanceof Error ? err : new Error('Failed to send image'));
       }
-
-      const messageData: ImageMessageData = {
-        message: caption,
-        user: username,
-        room,
-        messageType: 'image',
-        imageData
-      };
-
-      // Add reply information if replying to a message
-      if (replyingTo) {
-        messageData.replyTo = {
-          messageId: replyingTo._id,
-          message: replyingTo.message,
-          user: replyingTo.user
-        };
-      }
-
-      // Send via Socket.IO for real-time delivery
-      socketService.sendMessage(messageData);
-
-      // Clear reply state after sending
-      setReplyingTo(null);
-      
-      console.log('✅ Image message sent successfully');
-    } catch (err) {
-      console.error('❌ Failed to send image:', err);
-      setError('Failed to send image. The image might be too large.');
-    }
+    });
   }, [username, room, isConnected, replyingTo]);
 
   const sendTyping = useCallback((isTyping: boolean) => {

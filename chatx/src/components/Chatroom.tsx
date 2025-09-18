@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useChat } from "../hooks/useChat";
 import { type Message } from "../services/socketService";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme, themeConfig } from "../contexts/ThemeContext";
 import MessageStatus from "./MessageStatus";
 import ReplyPreview from "./ReplyPreview";
 import ReplyDisplay from "./ReplyDisplay";
@@ -114,60 +114,33 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       hour12: true,
     });
   };
-  // Theme-aware styles
-  const getThemeStyles = () => {
-    if (theme === "light") {
-      return {
-        container: "bg-white",
-        header: "bg-white/80 backdrop-blur-sm border-b border-gray-200",
-        headerText: "text-gray-900",
-        headerSecondary: "text-gray-600",
-        button: "hover:bg-gray-100",
-        buttonText: "text-gray-600 hover:text-gray-900",
-      };
-    }
-
-    // Default to dark theme
-    return {
-      container: "bg-gray-900",
-      header: "bg-gray-900/80 backdrop-blur-sm border-b border-gray-800",
-      headerText: "text-white",
-      headerSecondary: "text-gray-400",
-      button: "hover:bg-gray-800",
-      buttonText: "text-gray-400 hover:text-white",
-    };
-  };
-
-  const themeStyles = getThemeStyles();
+  // Get current theme configuration
+  const currentTheme = themeConfig[theme] || themeConfig.dark;
 
   // Helper function for message bubble styling
   const getMessageBubbleClass = (isOwnMessage: boolean) => {
     const baseClasses =
-      "max-w-xs lg:max-w-md px-4 py-3 rounded-xl cursor-pointer hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50";
+      "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50 backdrop-blur-sm";
 
     if (isOwnMessage) {
-      return `${baseClasses} bg-gradient-to-r from-blue-500 to-violet-600 text-white focus:ring-blue-400`;
+      return `${baseClasses} ${currentTheme.messageOwn} text-white focus:ring-white/20 shadow-lg hover:shadow-xl hover:scale-[1.02]`;
     }
 
-    if (theme === "light") {
-      return `${baseClasses} bg-gray-100 text-gray-900 border border-gray-200 focus:ring-gray-400`;
-    }
-
-    return `${baseClasses} bg-gray-800 text-white focus:ring-gray-400`;
+    return `${baseClasses} ${currentTheme.messageOther} ${currentTheme.messageOtherText} focus:ring-gray-400/20 hover:scale-[1.01]`;
   };
 
   return (
-    <div className={`h-[95vh] flex flex-col ${themeStyles.container} relative`}>
+    <div className={`h-[95vh] flex flex-col ${currentTheme.background} relative`}>
       {/* Header */}
-      <header className={themeStyles.header + " p-4"}>
+      <header className={`${currentTheme.header} backdrop-blur-sm border-b ${currentTheme.border} p-4`}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={onLeave}
-              className={`p-2 rounded-lg transition-colors ${themeStyles.button}`}
+              className={`p-2 rounded-lg transition-all duration-200 hover:scale-105 ${currentTheme.surface} ${currentTheme.textSecondary} hover:${currentTheme.text}`}
             >
               <svg
-                className={`w-5 h-5 ${themeStyles.buttonText}`}
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -181,11 +154,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               </svg>
             </button>
             <div>
-              <h1 className={`text-xl font-semibold ${themeStyles.headerText}`}>
+              <h1 className={`text-xl font-bold ${currentTheme.text} bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}>
                 ChatRoom
               </h1>
               <div
-                className={`flex items-center gap-1 text-sm ${themeStyles.headerSecondary}`}
+                className={`flex items-center gap-1 text-sm ${currentTheme.textSecondary}`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -204,13 +177,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               <div className="flex items-center space-x-2 mt-1">
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className={`text-xs ${themeStyles.headerSecondary}`}>
+                  <span className={`text-xs ${currentTheme.textSecondary}`}>
                     {onlineUsers.length} online
                   </span>
                 </div>
                 {onlineUsers.length > 0 && (
                   <div className="flex items-center space-x-1">
-                    <span className={`text-xs ${themeStyles.headerSecondary}`}>
+                    <span className={`text-xs ${currentTheme.textSecondary}`}>
                       •
                     </span>
                     <div className="flex -space-x-1 ">
@@ -226,11 +199,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                       </div>
                       {onlineUsers.length > 3 && (
                         <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
-                            theme === "light"
-                              ? "bg-gray-300 text-gray-700 border-gray-200"
-                              : "bg-gray-700 text-gray-300 border-gray-900"
-                          }`}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${currentTheme.surface} ${currentTheme.textSecondary} ${currentTheme.border}`}
                         >
                           +{onlineUsers.length - 3}
                         </div>
@@ -249,7 +218,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   isConnected ? "bg-green-400" : "bg-red-400"
                 }`}
               ></div>
-              <span className={`text-sm ${themeStyles.headerSecondary}`}>
+              <span className={`text-sm ${currentTheme.textSecondary}`}>
                 {isConnected ? "Connected" : "Disconnected"}
               </span>
             </div>
@@ -297,11 +266,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   >
                     {message.user !== username && (
                       <p
-                        className={`text-xs mb-1 font-medium ${
-                          theme === "light"
-                            ? "text-gray-600"
-                            : "text-purple-300"
-                        }`}
+                        className={`text-xs mb-1 font-medium ${currentTheme.textSecondary}`}
                       >
                         {message.user}
                       </p>
@@ -327,8 +292,8 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                       <p
                         className={`text-xs ${
                           message.user === username
-                            ? "text-blue-100"
-                            : "text-gray-400"
+                            ? "text-white/80"
+                            : currentTheme.textSecondary
                         }`}
                       >
                         {formatTime(message.timestamp)}
@@ -350,11 +315,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
           {typingUsers.length > 0 && (
             <div className="flex justify-start">
               <div
-                className={`px-4 py-2 rounded-xl text-sm ${
-                  theme === "light"
-                    ? "bg-gray-100 text-gray-600 border border-gray-200"
-                    : "bg-gray-800 text-gray-400"
-                }`}
+                className={`px-4 py-2 rounded-xl text-sm ${currentTheme.surface} ${currentTheme.textSecondary} ${currentTheme.border} border backdrop-blur-sm`}
               >
                 {typingUsers.map((u) => u.user).join(", ")}{" "}
                 {typingUsers.length === 1 ? "is" : "are"} typing...
@@ -368,11 +329,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
       {/* Message Input */}
       <div
-        className={`chat-input-area backdrop-blur-sm border-t p-4 ${
-          theme === "light"
-            ? "bg-white/80 border-gray-200"
-            : "bg-gray-900/80 border-gray-800"
-        }`}
+        className={`chat-input-area ${currentTheme.header} backdrop-blur-sm border-t ${currentTheme.border} p-4`}
       >
         <div className="max-w-4xl mx-auto">
           {/* Reply Preview */}
@@ -403,11 +360,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 }
                 disabled={!isConnected}
                 rows={1}
-                className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all disabled:opacity-50 resize-none overflow-hidden ${
-                  theme === "light"
-                    ? "bg-white text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-500"
-                    : "bg-gray-800 text-white border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-400"
-                }`}
+                className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all disabled:opacity-50 resize-none overflow-hidden ${currentTheme.input} focus:${currentTheme.inputFocus}`}
                 style={{
                   minHeight: "48px",
                   maxHeight: "120px",
@@ -428,7 +381,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             <button
               type="submit"
               disabled={!newMessage.trim()}
-              className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
+              className={`flex-shrink-0 w-12 h-12 bg-gradient-to-r ${currentTheme.accent} text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg`}
             >
               <svg
                 className="w-5 h-5"

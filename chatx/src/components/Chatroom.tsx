@@ -67,19 +67,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     };
   }, [markMessagesAsRead]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    const messageText = newMessage.trim();
-    if (messageText) {
-      // Clear input immediately for better UX
+    if (newMessage.trim()) {
+      await sendMessage(newMessage);
       setNewMessage("");
-      
-      // Send message without awaiting (fire and forget)
-      sendMessage(messageText).catch((error) => {
-        console.error('Failed to send message:', error);
-        // Optionally restore the message text on error
-        setNewMessage(messageText);
-      });
     }
   };
 
@@ -105,20 +97,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
   const handleImageSend = () => {
     if (selectedImage) {
-      const imageData = selectedImage.data;
-      const caption = newMessage;
-      
-      // Clear UI immediately
+      sendImageMessage(selectedImage.data, newMessage);
       setSelectedImage(null);
       setNewMessage("");
-      
-      // Send image without blocking UI
-      sendImageMessage(imageData, caption).catch((error) => {
-        console.error('Failed to send image:', error);
-        // Optionally restore on error
-        setSelectedImage({ data: imageData, fileName: selectedImage.fileName });
-        setNewMessage(caption);
-      });
     }
   };
 
@@ -149,9 +130,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   };
 
   return (
-    <div className={`h-[95vh] flex flex-col ${currentTheme.background} relative`}>
+    <div
+      className={`h-[95vh] flex flex-col ${currentTheme.background} relative`}
+    >
       {/* Header */}
-      <header className={`${currentTheme.header} backdrop-blur-sm border-b ${currentTheme.border} p-4`}>
+      <header
+        className={`${currentTheme.header} backdrop-blur-sm border-b ${currentTheme.border} p-4`}
+      >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -173,7 +158,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               </svg>
             </button>
             <div>
-              <h1 className={`text-xl font-bold ${currentTheme.text} bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}>
+              <h1
+                className={`text-xl font-bold ${currentTheme.text} bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}
+              >
                 ChatRoom
               </h1>
               <div
@@ -267,21 +254,25 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               <div
                 key={message._id}
                 className={`flex mb-4 ${
-                  message.user === username 
-                    ? "justify-end pl-12" 
+                  message.user === username
+                    ? "justify-end pl-12"
                     : "justify-start pr-12"
                 }`}
               >
-                <div className={`flex items-end space-x-2 ${
-                  message.user === username ? "flex-row-reverse space-x-reverse" : ""
-                }`}>
+                <div
+                  className={`flex items-end space-x-2 ${
+                    message.user === username
+                      ? "flex-row-reverse space-x-reverse"
+                      : ""
+                  }`}
+                >
                   {/* Avatar for other users */}
                   {message.user !== username && (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
                       {message.user.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  
+
                   <SwipeableMessage
                     onSwipeReply={() => startReply(message)}
                     isOwnMessage={message.user === username}
@@ -289,13 +280,17 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     <div className="flex flex-col">
                       {/* Username for other users */}
                       {message.user !== username && (
-                        <p className={`text-xs mb-1 font-medium ${currentTheme.textSecondary} ml-1`}>
+                        <p
+                          className={`text-xs mb-1 font-medium ${currentTheme.textSecondary} ml-1`}
+                        >
                           {message.user}
                         </p>
                       )}
-                      
+
                       <div
-                        className={getMessageBubbleClass(message.user === username)}
+                        className={getMessageBubbleClass(
+                          message.user === username,
+                        )}
                         onClick={() => handleMessageClick(message)}
                         onKeyDown={(e) => handleMessageKeyDown(e, message)}
                         tabIndex={0}
@@ -310,7 +305,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                             className="mb-2"
                           />
                         )}
-                        
+
                         {/* Display message content based on type */}
                         {message.messageType === "image" ? (
                           <ImageMessage
@@ -318,12 +313,18 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                             caption={message.message}
                           />
                         ) : (
-                          <p className="text-sm leading-relaxed">{message.message}</p>
+                          <p className="text-sm leading-relaxed">
+                            {message.message}
+                          </p>
                         )}
 
-                        <div className={`flex items-center mt-2 ${
-                          message.user === username ? "justify-end" : "justify-start"
-                        }`}>
+                        <div
+                          className={`flex items-center mt-2 ${
+                            message.user === username
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
+                        >
                           <p
                             className={`text-xs ${
                               message.user === username
@@ -345,7 +346,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                       </div>
                     </div>
                   </SwipeableMessage>
-                  
+
                   {/* Your avatar (optional, can be removed if you don't want it) */}
                   {message.user === username && (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
@@ -401,12 +402,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               <textarea
                 value={newMessage}
                 onChange={handleInputChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
                 placeholder={
                   isConnected ? "Type your message..." : "Connecting..."
                 }

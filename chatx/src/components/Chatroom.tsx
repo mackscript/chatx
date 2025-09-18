@@ -376,7 +376,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
       {/* Message Input */}
       <div
-        className={`chat-input-area ${currentTheme.header} backdrop-blur-sm border-t ${currentTheme.border} p-4`}
+        className={`chat-input-area ${currentTheme.header} backdrop-blur-md border-t ${currentTheme.border} p-6 shadow-lg`}
       >
         <div className="max-w-4xl mx-auto">
           {/* Reply Preview */}
@@ -396,20 +396,27 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
           <form
             onSubmit={handleSendMessage}
-            className="flex items-center space-x-4"
+            className="flex items-center space-x-3"
           >
+            {/* Message Input Container */}
             <div className="flex-1 relative">
               <textarea
                 value={newMessage}
                 onChange={handleInputChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
                 placeholder={
                   isConnected ? "Type your message..." : "Connecting..."
                 }
                 disabled={!isConnected}
                 rows={1}
-                className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all disabled:opacity-50 resize-none overflow-hidden ${currentTheme.input} focus:${currentTheme.inputFocus}`}
+                className={`w-full px-4 py-3 pr-12 rounded-2xl border-2 focus:outline-none focus:ring-2 transition-all duration-300 disabled:opacity-50 resize-none overflow-hidden shadow-sm ${currentTheme.input} focus:${currentTheme.inputFocus} hover:shadow-md`}
                 style={{
-                  minHeight: "48px",
+                  minHeight: "52px",
                   maxHeight: "120px",
                   height: "auto",
                 }}
@@ -420,30 +427,67 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     Math.min(target.scrollHeight, 120) + "px";
                 }}
               />
+
+              {/* Character count indicator */}
+              {newMessage.length > 0 && (
+                <div
+                  className={`absolute bottom-2 right-3 text-xs ${currentTheme.textSecondary} opacity-60`}
+                >
+                  {newMessage.length}
+                </div>
+              )}
             </div>
-            <ImageUpload
-              onImageSelect={handleImageSelect}
-              disabled={!isConnected}
-            />
-            <button
-              type="submit"
-              disabled={!newMessage.trim()}
-              className={`flex-shrink-0 w-12 h-12 bg-gradient-to-r ${currentTheme.accent} text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+
+            {/* Action Buttons Container */}
+            <div className="flex items-center space-x-2">
+              {/* Image Upload Button */}
+              <div className="relative group">
+                <ImageUpload
+                  onImageSelect={handleImageSelect}
+                  disabled={!isConnected}
                 />
-              </svg>
-            </button>
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  Share Image
+                </div>
+              </div>
+
+              {/* Send Button */}
+              <div className="relative group">
+                <button
+                  type="submit"
+                  disabled={!newMessage.trim() || !isConnected}
+                  className={`flex-shrink-0 w-12 h-12 bg-gradient-to-r ${currentTheme.accent} text-white font-medium rounded-full hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center shadow-lg relative overflow-hidden group`}
+                >
+                  {/* Ripple effect */}
+                  <div className="absolute inset-0 bg-white opacity-0 group-active:opacity-20 transition-opacity duration-150 rounded-full"></div>
+
+                  {/* Send Icon */}
+                  <svg
+                    className={`w-5 h-5 transform transition-transform duration-200 ${
+                      !newMessage.trim()
+                        ? "rotate-0"
+                        : "rotate-12 group-hover:rotate-45"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                </button>
+
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  {newMessage.trim() ? "Send Message" : "Type a message"}
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       </div>

@@ -305,7 +305,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         {message.user}
                       </p>
                     )}
-
                     {/* Show reply information if this message is a reply */}
                     {message.replyTo && (
                       <ReplyDisplay
@@ -313,7 +312,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         className="mb-2"
                       />
                     )}
-
                     {/* Display message content based on type */}
                     {message.messageType === "image" ? (
                       <ImageMessage
@@ -323,6 +321,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     ) : (
                       <p className="text-sm">{message.message}</p>
                     )}
+
                     <div className="flex items-center justify-between mt-1">
                       <p
                         className={`text-xs ${

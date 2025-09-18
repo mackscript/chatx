@@ -213,16 +213,17 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     <span className={`text-xs ${themeStyles.headerSecondary}`}>
                       •
                     </span>
-                    <div className="flex -space-x-1">
-                      {onlineUsers.slice(0, 3).map((user) => (
-                        <div
-                          key={user.socketId}
-                          className="w-6 h-6 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-gray-900"
-                          title={user.username}
-                        >
-                          {user.username.charAt(0).toUpperCase()}
-                        </div>
-                      ))}
+                    <div className="flex -space-x-1 ">
+                      <div className="w-full capitalize text-xs text-white font-medium">
+                        {onlineUsers
+                          .slice(0, 3)
+                          .map((user) =>
+                            user.username.length > 6
+                              ? user.username.substring(0, 6) + "..."
+                              : user.username,
+                          )
+                          .join(", ")}
+                      </div>
                       {onlineUsers.length > 3 && (
                         <div
                           className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${

@@ -18,13 +18,15 @@ interface ChatroomProps {
 }
 
 const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
+  const { theme } = useTheme();
+  const currentTheme = themeConfig[theme] || themeConfig.dark;
   const [newMessage, setNewMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<{
     data: string;
     fileName: string;
   } | null>(null);
+  const [showShareToast, setShowShareToast] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
 
   const {
     messages,
@@ -114,8 +116,36 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       hour12: true,
     });
   };
-  // Get current theme configuration
-  const currentTheme = themeConfig[theme] || themeConfig.dark;
+  // Share room functionality
+  const handleShareRoom = async () => {
+    const roomUrl = `${window.location.origin}/${room}`;
+
+    try {
+      if (navigator.share) {
+        // Use native share API if available (mobile)
+        await navigator.share({
+          title: "Join my ChatX room!",
+          text: "Come chat with me in this room",
+          url: roomUrl,
+        });
+      } else {
+        // Fallback to clipboard copy
+        await navigator.clipboard.writeText(roomUrl);
+        setShowShareToast(true);
+        setTimeout(() => setShowShareToast(false), 3000);
+      }
+    } catch (error) {
+      console.error("Failed to share:", error);
+      // Fallback to clipboard copy if share fails
+      try {
+        await navigator.clipboard.writeText(roomUrl);
+        setShowShareToast(true);
+        setTimeout(() => setShowShareToast(false), 3000);
+      } catch (clipboardError) {
+        console.error("Failed to copy to clipboard:", clipboardError);
+      }
+    }
+  };
 
   // Helper function for message bubble styling
   const getMessageBubbleClass = (isOwnMessage: boolean) => {
@@ -218,6 +248,34 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Share Room Button */}
+            <div className="relative group">
+              <button
+                onClick={handleShareRoom}
+                className={`p-2 rounded-full transition-all duration-200 hover:scale-110 hover:shadow-lg ${currentTheme.surface} ${currentTheme.textSecondary} hover:${currentTheme.text} active:scale-95`}
+                title="Share Room"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                  />
+                </svg>
+              </button>
+
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                Share Room
+              </div>
+            </div>
+
             <div className="flex items-center space-x-2">
               <div
                 className={`w-2 h-2 rounded-full ${
@@ -234,6 +292,37 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
           </div>
         </div>
       </header>
+
+      {/* Share Toast Notification */}
+      {showShareToast && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div
+            className={`${currentTheme.surface} ${currentTheme.text} px-4 py-3 rounded-xl shadow-lg border ${currentTheme.border} backdrop-blur-sm flex items-center space-x-3`}
+          >
+            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+              <svg
+                className="w-4 h-4 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Room URL copied!</p>
+              <p className={`text-xs ${currentTheme.textSecondary}`}>
+                Share it with your friends
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4">

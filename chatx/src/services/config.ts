@@ -12,11 +12,11 @@ const isProduction = false;
 export const config: AppConfig = {
   API_BASE_URL: isProduction
     ? "https://chatx.nextyfine.com/api"
-    : "http://localhost:9028/api",
+    : "https://9d28678b9e2a.ngrok-free.app/api",
 
   SOCKET_URL: isProduction
     ? "https://chatx.nextyfine.com"
-    : "http://localhost:9028",
+    : "https://9d28678b9e2a.ngrok-free.app",
 
   IS_PRODUCTION: isProduction,
 };

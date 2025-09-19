@@ -6,7 +6,7 @@ export interface AppConfig {
 }
 
 // Determine if we're in production based on environment
-const isProduction = false;
+const isProduction = true;
 
 // Configuration object with environment-specific URLs
 export const config: AppConfig = {

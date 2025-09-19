@@ -76,6 +76,18 @@ export const setupSocketHandlers = (io, db) => {
           return;
         }
 
+        // Debug logging for image messages
+        if (messageType === 'image') {
+          console.log('🖼️ Processing image message:', {
+            user,
+            room,
+            messageType,
+            captionLength: message ? message.length : 0,
+            hasImageData: !!imageData,
+            imageDataSize: imageData ? (imageData.length / (1024 * 1024)).toFixed(2) + 'MB' : 'N/A'
+          });
+        }
+
         // For image messages, imageData is required
         if (messageType === 'image' && !imageData) {
           socket.emit('error', { message: 'Image data is required' });

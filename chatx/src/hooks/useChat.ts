@@ -288,12 +288,22 @@ export const useChat = ({ username, room }: UseChatProps) => {
         }
 
         const messageData: ImageMessageData = {
-          message: caption,
+          message: caption || "", // Ensure message is never undefined
           user: username,
           room,
           messageType: "image",
           imageData,
         };
+
+        // Debug logging
+        console.log("🖼️ Prepared image message data:", {
+          messageLength: messageData.message.length,
+          user: messageData.user,
+          room: messageData.room,
+          messageType: messageData.messageType,
+          hasImageData: !!messageData.imageData,
+          imageDataSize: (messageData.imageData.length / (1024 * 1024)).toFixed(2) + "MB"
+        });
 
         // Add reply information if replying to a message
         if (replyingTo) {

@@ -74,28 +74,48 @@ class SocketService {
 
   connect(): Socket {
     if (!this.socket) {
+      console.log('🔌 Attempting to connect to:', this.serverUrl);
       this.socket = io(this.serverUrl, {
-        transports: ["websocket"],
+        transports: ["websocket", "polling"], // Add polling as fallback for production
         autoConnect: true,
+        timeout: 20000, // 20 second timeout
+        forceNew: true,
       });
 
       this.socket.on('connect', () => {
-        console.log('Connected to server');
+        console.log('✅ Connected to server:', this.serverUrl);
+        console.log('🔌 Socket ID:', this.socket?.id);
       });
 
       this.socket.on('disconnect', () => {
         console.log('Disconnected from server');
+        this.socket = null;
       });
 
       this.socket.on('error', (error: any) => {
         console.error('❌ Socket error:', error);
+        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
         if (error.message) {
-          alert(`Error: ${error.message}`);
+          console.error(`❌ Error message: ${error.message}`);
+          // Don't use alert in production, just log
+          if (!window.location.hostname.includes('nextyfine.com')) {
+            alert(`Error: ${error.message}`);
+          }
         }
       });
 
       this.socket.on("connect_error", (error) => {
         console.error("❌ Connection error:", error);
+        console.error("❌ Failed to connect to:", this.serverUrl);
+        console.error("❌ Error details:", JSON.stringify(error, null, 2));
+      });
+
+      this.socket.on("reconnect", (attemptNumber) => {
+        console.log("🔄 Reconnected after", attemptNumber, "attempts");
+      });
+
+      this.socket.on("reconnect_error", (error) => {
+        console.error("❌ Reconnection failed:", error);
       });
     }
 
@@ -119,9 +139,39 @@ class SocketService {
     message: string;
     user: string;
     room: string;
+    messageType?: "text" | "image";
+    imageData?: string;
+    replyTo?: {
+      messageId: string;
+      message: string;
+      user: string;
+    };
   }): void {
     if (this.socket) {
+      console.log('📤 SocketService sending message:', {
+        user: messageData.user,
+        room: messageData.room,
+        messageType: messageData.messageType,
+        hasImageData: !!messageData.imageData,
+        hasReply: !!messageData.replyTo,
+        connected: this.socket.connected,
+        socketId: this.socket.id
+      });
+
+      if (!this.socket.connected) {
+        console.error('❌ Socket not connected! Cannot send message');
+        return;
+      }
+
+      if (messageData.messageType === 'image') {
+        console.log('🖼️ Sending image message with size:', 
+          messageData.imageData ? (messageData.imageData.length / (1024 * 1024)).toFixed(2) + 'MB' : 'No image data');
+      }
+
       this.socket.emit("send_message", messageData);
+      console.log('✅ Message emitted to server');
+    } else {
+      console.error('❌ No socket connection available');
     }
   }
 

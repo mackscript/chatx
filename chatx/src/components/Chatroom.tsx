@@ -84,6 +84,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
   const handleMessageClick = (message: Message) => {
     // startReply(message);
+    console.log("first", message);
   };
 
   const handleMessageKeyDown = (e: React.KeyboardEvent, message: Message) => {
@@ -437,11 +438,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   </SwipeableMessage>
 
                   {/* Your avatar (optional, can be removed if you don't want it) */}
-                  {message.user === username && (
+                  {/* {message.user === username && (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
                       You
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             ))

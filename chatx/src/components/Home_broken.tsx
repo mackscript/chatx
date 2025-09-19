@@ -27,7 +27,6 @@ const Home = () => {
     const url = `${window.location.origin}/${createdRoomId}`;
     navigator.clipboard.writeText(url);
   };
-
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
       <header className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-800/50 backdrop-blur-sm sticky top-0 z-10 bg-gray-900/80">
@@ -86,65 +85,64 @@ const Home = () => {
                 Connect instantly with friends and colleagues in our modern,
                 real-time chat experience designed for seamless communication.
               </p>
-            </div>
 
             {/* CTA Buttons */}
             <div className="pt-6 sm:pt-8">
-              {!showRoomCreated ? (
-                <button
-                  onClick={handleCreateRoom}
-                  className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm sm:text-base rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 ease-out active:scale-95">
-                  <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Create a New Chat
-                </button>
-              ) : (
-                <div className="space-y-6 px-4">
-                  <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 sm:p-6 max-w-md mx-auto animate-scale-in shadow-xl">
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
-                      🎉 Room Created!
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                        <p className="text-xs sm:text-sm text-gray-400 mb-1">
-                          Share this URL:
-                        </p>
-                        <p className="text-xs sm:text-sm text-blue-400 font-mono break-all">
-                          {window.location.origin}/{createdRoomId}
-                        </p>
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                        <button
-                          onClick={copyRoomUrl}
-                          className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors active:scale-95">
-                          Copy URL
-                        </button>
-                        <button
-                          onClick={handleJoinRoom}
-                          className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-violet-600 text-white text-sm rounded-lg hover:shadow-lg transition-all active:scale-95">
-                          Join Room
-                        </button>
-                      </div>
+            {!showRoomCreated ? (
+              <button
+                onClick={handleCreateRoom}
+                className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm sm:text-base rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 ease-out active:scale-95">
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Create a New Chat
+              </button>
+            ) : (
+              <div className="space-y-6 px-4">
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 sm:p-6 max-w-md mx-auto animate-scale-in shadow-xl">
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+                    🎉 Room Created!
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
+                      <p className="text-xs sm:text-sm text-gray-400 mb-1">
+                        Share this URL:
+                      </p>
+                      <p className="text-xs sm:text-sm text-blue-400 font-mono break-all">
+                        {window.location.origin}/{createdRoomId}
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <button
+                        onClick={copyRoomUrl}
+                        className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors active:scale-95">
+                        Copy URL
+                      </button>
+                      <button
+                        onClick={handleJoinRoom}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-violet-600 text-white text-sm rounded-lg hover:shadow-lg transition-all active:scale-95">
+                        Join Room
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowRoomCreated(false)}
-                    className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">
-                    Create Another Room
-                  </button>
                 </div>
-              )}
+                <button
+                  onClick={() => setShowRoomCreated(false)}
+                  className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">
+                  Create Another Room
+                </button>
+              </div>
+            )}
             </div>
 
             {/* Features */}
@@ -172,7 +170,7 @@ const Home = () => {
                   Real-time messaging with instant delivery and seamless
                   performance.
                 </p>
-              </div>
+            </div>
 
               <div className="p-4 sm:p-6 rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-violet-500/50 transition-all hover:shadow-lg hover:scale-105 transform duration-300">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4 mx-auto">
@@ -194,7 +192,7 @@ const Home = () => {
                 <p className="text-gray-400 text-xs sm:text-sm">
                   Your conversations are protected with modern security standards.
                 </p>
-              </div>
+            </div>
 
               <div className="p-4 sm:p-6 rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-teal-500/50 transition-all hover:shadow-lg hover:scale-105 transform duration-300 sm:col-span-2 md:col-span-1">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4 mx-auto">
@@ -219,7 +217,6 @@ const Home = () => {
                   Clean, intuitive interface designed for the best user
                   experience.
                 </p>
-              </div>
             </div>
           </div>
         </div>

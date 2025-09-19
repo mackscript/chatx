@@ -26,6 +26,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     fileName: string;
   } | null>(null);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -83,8 +84,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   };
 
   const handleMessageClick = (message: Message) => {
-    // startReply(message);
-    console.log("first", message);
+    startReply(message);
   };
 
   const handleMessageKeyDown = (e: React.KeyboardEvent, message: Message) => {
@@ -151,7 +151,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
   // Helper function for message bubble styling
   const getMessageBubbleClass = (isOwnMessage: boolean) => {
     const baseClasses =
-      "max-w-xs lg:max-w-md px-4 py-3 cursor-pointer hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50 backdrop-blur-sm relative";
+      "max-w-[85%] sm:max-w-[70%] md:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50 backdrop-blur-sm relative";
 
     if (isOwnMessage) {
       return `${baseClasses} ${currentTheme.messageOwn} text-white focus:ring-white/20 shadow-lg hover:shadow-xl hover:scale-[1.02] rounded-2xl rounded-br-md ml-auto`;
@@ -162,20 +162,20 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
   return (
     <div
-      className={`h-[95vh] flex flex-col ${currentTheme.background} relative`}
+      className={`h-screen flex flex-col ${currentTheme.background} relative`}
     >
       {/* Header */}
       <header
-        className={`${currentTheme.header} backdrop-blur-sm border-b ${currentTheme.border} p-4`}
+        className={`${currentTheme.header} backdrop-blur-sm border-b ${currentTheme.border} p-3 sm:p-4 sticky top-0 z-40`}
       >
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-1">
             <button
               onClick={onLeave}
-              className={`p-2 rounded-lg transition-all duration-200 hover:scale-105 ${currentTheme.surface} ${currentTheme.textSecondary} hover:${currentTheme.text}`}
+              className={`p-1.5 sm:p-2 rounded-lg transition-all duration-200 hover:scale-105 ${currentTheme.surface} ${currentTheme.textSecondary} hover:${currentTheme.text}`}
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -188,14 +188,14 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 />
               </svg>
             </button>
-            <div>
+            <div className="flex-1">
               <h1
-                className={`text-xl font-bold ${currentTheme.text} bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}
+                className={`text-lg sm:text-xl font-bold ${currentTheme.text} bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}
               >
                 ChatRoom
               </h1>
               <div
-                className={`flex items-center gap-1 text-sm ${currentTheme.textSecondary}`}
+                className={`hidden sm:flex items-center gap-1 text-sm ${currentTheme.textSecondary}`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -213,13 +213,13 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               </div>
               <div className="flex items-center space-x-2 mt-1">
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className={`text-xs ${currentTheme.textSecondary}`}>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
+                  <span className={`text-[10px] sm:text-xs ${currentTheme.textSecondary}`}>
                     {onlineUsers.length} online
                   </span>
                 </div>
                 {onlineUsers.length > 0 && (
-                  <div className="flex items-center space-x-1">
+                  <div className="hidden sm:flex items-center space-x-1">
                     <span className={`text-xs ${currentTheme.textSecondary}`}>
                       •
                     </span>
@@ -248,7 +248,8 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* Desktop Navigation */}
+          <div className="hidden sm:flex items-center space-x-3">
             {/* Share Room Button */}
             <div className="relative group">
               <button
@@ -291,12 +292,77 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             {/* Theme Dropdown */}
             <ThemeDropdown />
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`sm:hidden p-2 rounded-lg ${currentTheme.surface} ${currentTheme.textSecondary}`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isMobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
       </header>
 
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className={`sm:hidden absolute top-[60px] left-0 right-0 z-30 ${currentTheme.surface} border-b ${currentTheme.border} shadow-lg`}>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className={`text-sm ${currentTheme.textSecondary}`}>
+                Connection
+              </span>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"}`}></div>
+                <span className={`text-sm ${currentTheme.text}`}>
+                  {isConnected ? "Connected" : "Disconnected"}
+                </span>
+              </div>
+            </div>
+            
+            <button
+              onClick={handleShareRoom}
+              className={`w-full p-3 rounded-lg flex items-center justify-center space-x-2 ${currentTheme.surface} ${currentTheme.text} hover:bg-gray-700 transition-colors`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+              <span>Share Room</span>
+            </button>
+
+            <div className="pt-2 border-t ${currentTheme.border}">
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${currentTheme.textSecondary}`}>Theme</span>
+                <ThemeDropdown />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Share Toast Notification */}
       {showShareToast && (
-        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
+        <div className="fixed top-16 sm:top-20 right-2 sm:right-4 z-50 animate-in slide-in-from-right duration-300">
           <div
             className={`${currentTheme.surface} ${currentTheme.text} px-4 py-3 rounded-xl shadow-lg border ${currentTheme.border} backdrop-blur-sm flex items-center space-x-3`}
           >
@@ -326,7 +392,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
       )}
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4">
         <div className="max-w-4xl mx-auto space-y-4">
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 text-red-400 text-center">
@@ -343,10 +409,10 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
             messages.map((message) => (
               <div
                 key={message._id}
-                className={`flex mb-4 ${
+                className={`flex mb-3 sm:mb-4 ${
                   message.user === username
-                    ? "justify-end pl-12"
-                    : "justify-start pr-12"
+                    ? "justify-end pl-4 sm:pl-12"
+                    : "justify-start pr-4 sm:pr-12"
                 }`}
               >
                 <div
@@ -358,7 +424,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 >
                   {/* Avatar for other users */}
                   {message.user !== username && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold mb-1 flex-shrink-0">
                       {message.user.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -371,7 +437,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                       {/* Username for other users */}
                       {message.user !== username && (
                         <p
-                          className={`text-xs mb-1 font-medium ${currentTheme.textSecondary} ml-1`}
+                          className={`text-[11px] sm:text-xs mb-1 font-medium ${currentTheme.textSecondary} ml-1`}
                         >
                           {message.user}
                         </p>
@@ -384,7 +450,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         onClick={() => handleMessageClick(message)}
                         onKeyDown={(e) => handleMessageKeyDown(e, message)}
                         tabIndex={0}
-                        role="button"
                         aria-label={`Reply to message from ${message.user}: ${message.message}`}
                         title="Click or swipe to reply to this message"
                       >
@@ -403,7 +468,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                             caption={message.message}
                           />
                         ) : (
-                          <p className="text-sm leading-relaxed">
+                          <p className="text-xs sm:text-sm leading-relaxed">
                             {message.message}
                           </p>
                         )}
@@ -416,7 +481,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                           }`}
                         >
                           <p
-                            className={`text-xs ${
+                            className={`text-[10px] sm:text-xs ${
                               message.user === username
                                 ? "text-white/70"
                                 : currentTheme.textSecondary
@@ -437,12 +502,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                     </div>
                   </SwipeableMessage>
 
-                  {/* Your avatar (optional, can be removed if you don't want it) */}
-                  {/* {message.user === username && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mb-1 flex-shrink-0">
-                      You
-                    </div>
-                  )} */}
                 </div>
               </div>
             ))
@@ -466,7 +525,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
       {/* Message Input */}
       <div
-        className={`chat-input-area ${currentTheme.header} backdrop-blur-md border-t ${currentTheme.border} p-6 shadow-lg`}
+        className={`chat-input-area ${currentTheme.header} backdrop-blur-md border-t ${currentTheme.border} p-3 sm:p-4 md:p-6 shadow-lg`}
       >
         <div className="max-w-4xl mx-auto">
           {/* Reply Preview */}
@@ -486,7 +545,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
           <form
             onSubmit={handleSendMessage}
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-2 sm:space-x-3"
           >
             {/* Message Input Container */}
             <div className="flex-1 relative">
@@ -500,11 +559,11 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                   }
                 }}
                 placeholder={
-                  isConnected ? "Type your message..." : "Connecting..."
+                  isConnected ? "Type a message..." : "Connecting..."
                 }
                 disabled={!isConnected}
                 rows={1}
-                className={`w-full px-4 py-3 pr-12 rounded-2xl border-2 focus:outline-none focus:ring-2 transition-all duration-300 disabled:opacity-50 resize-none overflow-hidden shadow-sm ${currentTheme.input} focus:${currentTheme.inputFocus} hover:shadow-md`}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border sm:border-2 focus:outline-none focus:ring-2 transition-all duration-300 disabled:opacity-50 resize-none overflow-hidden shadow-sm ${currentTheme.input} focus:${currentTheme.inputFocus} hover:shadow-md text-sm sm:text-base`}
                 style={{
                   minHeight: "52px",
                   maxHeight: "120px",
@@ -519,9 +578,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               />
 
               {/* Character count indicator */}
-              {newMessage.length > 0 && (
+              {newMessage.length > 100 && (
                 <div
-                  className={`absolute bottom-2 right-3 text-xs ${currentTheme.textSecondary} opacity-60`}
+                  className={`absolute bottom-1 sm:bottom-2 right-2 sm:right-3 text-[10px] sm:text-xs ${currentTheme.textSecondary} opacity-60`}
                 >
                   {newMessage.length}
                 </div>
@@ -547,14 +606,14 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                 <button
                   type="submit"
                   disabled={!newMessage.trim() || !isConnected}
-                  className={`flex-shrink-0 w-12 h-12 bg-gradient-to-r ${currentTheme.accent} text-white font-medium rounded-full hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center shadow-lg relative overflow-hidden group`}
+                  className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${currentTheme.accent} text-white font-medium rounded-full hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center shadow-lg relative overflow-hidden group`}
                 >
                   {/* Ripple effect */}
                   <div className="absolute inset-0 bg-white opacity-0 group-active:opacity-20 transition-opacity duration-150 rounded-full"></div>
 
                   {/* Send Icon */}
                   <svg
-                    className={`w-5 h-5 transform transition-transform duration-200 ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 transform transition-transform duration-200 ${
                       !newMessage.trim()
                         ? "rotate-0"
                         : "rotate-12 group-hover:rotate-45"

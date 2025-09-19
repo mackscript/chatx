@@ -469,74 +469,85 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         </p>
                       )}
 
-                      <div
-                        className={getMessageBubbleClass(
-                          message.user === username,
-                        )}
-                        onKeyDown={(e) => handleMessageKeyDown(e, message)}
-                        tabIndex={0}
-                        aria-label={`Reply to message from ${message.user}: ${message.message}`}
-                        title="Click or swipe to reply to this message"
-                      >
-                        {/* Show reply information if this message is a reply */}
-                        {message.replyTo && (
-                          <ReplyDisplay
-                            replyTo={message.replyTo}
-                            className="mb-2"
-                          />
-                        )}
-
-                        {/* Display message content based on type */}
-                        {message.messageType === "image" ? (
-                          <ImageMessage
-                            imageData={message.imageData || ""}
-                            caption={message.message}
-                          />
-                        ) : (
-                          <p className="text-xs sm:text-sm leading-relaxed">
-                            {message.message}
-                          </p>
-                        )}
-
+                      <div className="relative">
+                        {/* Message Reactions - positioned outside message box */}
                         <div
-                          className={`flex items-center mt-2 ${
-                            message.user === username
-                              ? "justify-end"
-                              : "justify-start"
+                          className={`absolute -top-1 z-10 ${
+                            message.user === username 
+                              ? "-left-8 sm:-left-10" // Right user: icon at top-left
+                              : "-right-8 sm:-right-10" // Left user: icon at top-right
                           }`}
                         >
-                          <p
-                            className={`text-[10px] sm:text-xs ${
-                              message.user === username
-                                ? "text-white/70"
-                                : currentTheme.textSecondary
-                            }`}
-                          >
-                            {formatTime(message.timestamp)}
-                          </p>
-
-                          {message.user === username && (
-                            <MessageStatus
-                              status={message.status}
-                              isOwnMessage={true}
-                              className="ml-2"
-                            />
-                          )}
+                          <MessageReactionsComponent
+                            reactions={message.reactions}
+                            currentUser={username}
+                            isOwnMessage={message.user === username}
+                            onToggleReaction={(emoji) => {
+                              console.log("🎯 Chatroom calling toggleReaction:", {
+                                messageId: message._id,
+                                emoji,
+                                reactions: message.reactions,
+                              });
+                              toggleReaction(message._id, emoji);
+                            }}
+                          />
                         </div>
 
-                        {/* Message Reactions */}
-                        <MessageReactionsComponent
-                          reactions={message.reactions}
-                          currentUser={username}
-                          onToggleReaction={(emoji) => {
-                            console.log("🎯 Chatroom calling toggleReaction:", {
-                              messageId: message._id,
-                              emoji,
-                              reactions: message.reactions,
-                            });
-                            toggleReaction(message._id, emoji);
-                          }}
-                        />
+                        <div
+                          className={`${getMessageBubbleClass(
+                            message.user === username,
+                          )} max-w-xs sm:max-w-sm md:max-w-md`} // Make message boxes smaller
+                          onKeyDown={(e) => handleMessageKeyDown(e, message)}
+                          tabIndex={0}
+                          aria-label={`Reply to message from ${message.user}: ${message.message}`}
+                          title="Click or swipe to reply to this message"
+                        >
+                          {/* Show reply information if this message is a reply */}
+                          {message.replyTo && (
+                            <ReplyDisplay
+                              replyTo={message.replyTo}
+                              className="mb-2"
+                            />
+                          )}
+
+                          {/* Display message content based on type */}
+                          {message.messageType === "image" ? (
+                            <ImageMessage
+                              imageData={message.imageData || ""}
+                              caption={message.message}
+                            />
+                          ) : (
+                            <p className="text-xs sm:text-sm leading-relaxed">
+                              {message.message}
+                            </p>
+                          )}
+
+                          <div
+                            className={`flex items-center mt-1 ${
+                              message.user === username
+                                ? "justify-end"
+                                : "justify-start"
+                            }`}
+                          >
+                            <p
+                              className={`text-[10px] sm:text-xs ${
+                                message.user === username
+                                  ? "text-white/70"
+                                  : currentTheme.textSecondary
+                              }`}
+                            >
+                              {formatTime(message.timestamp)}
+                            </p>
+
+                            {message.user === username && (
+                              <MessageStatus
+                                status={message.status}
+                                isOwnMessage={true}
+                                className="ml-2"
+                              />
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </SwipeableMessage>

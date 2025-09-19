@@ -51,8 +51,12 @@ export const useChat = ({ username, room }: UseChatProps) => {
           response.data.length,
           "messages",
         );
-        // Reverse to show oldest first
-        const reversedMessages = [...response.data].reverse();
+        // Reverse to show oldest first and ensure reactions field exists
+        const reversedMessages = [...response.data].reverse().map(msg => ({
+          ...msg,
+          reactions: msg.reactions || {}
+        }));
+        console.log('📨 Messages with reactions:', reversedMessages.map(m => ({ id: m._id, reactions: m.reactions })));
         setMessages(reversedMessages);
       } else {
         console.error("❌ API returned error:", response);
@@ -102,9 +106,14 @@ export const useChat = ({ username, room }: UseChatProps) => {
   // Set up message listeners
   useEffect(() => {
     socketService.onReceiveMessage((message: Message) => {
-      console.log("📥 Received message:", message);
-      console.log("📥 Reply data in received message:", message.replyTo);
-      setMessages((prev) => [...prev, message]);
+      console.log("📨 Received message:", message);
+      // Ensure reactions field exists
+      const messageWithReactions = {
+        ...message,
+        reactions: message.reactions || {}
+      };
+      console.log("📨 Message with reactions:", messageWithReactions.reactions);
+      setMessages((prev) => [...prev, messageWithReactions]);
 
       // Auto-mark message as read if it's not from current user
       if (message.user !== username) {
@@ -143,11 +152,50 @@ export const useChat = ({ username, room }: UseChatProps) => {
       }
     });
 
-    socketService.onRoomUsersUpdated((data) => {
-      setOnlineUsers(data.users);
+    socketService.onRoomUsersUpdated(({ users }) => {
+      setOnlineUsers(users);
     });
 
-    // Handle message delivery status
+    // Listen for reaction updates
+    socketService.onReactionUpdated((data) => {
+      console.log('🎭 Received reaction update:', data);
+      setMessages((prevMessages) => {
+        const updatedMessages = prevMessages.map((msg) =>
+          msg._id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        );
+        console.log('📝 Updated messages with reactions:', updatedMessages.find(m => m._id === data.messageId)?.reactions);
+        return updatedMessages;
+      });
+    });
+
+    // Listen for blocked reactions
+    socketService.onReactionBlocked((data) => {
+      console.log('🚫 Reaction blocked:', data);
+      setError(`Cannot change reaction: ${data.error}`);
+      // Clear error after 3 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
+    });
+
+    socketService.onError((error: SocketError) => {
+      console.error("Socket error:", error);
+
+      // Handle specific error types
+      if (error.type === "image_too_large") {
+        setError(`Image upload failed: ${error.message}`);
+      } else {
+        setError(error.message || "Socket error occurred");
+      }
+
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+    });
+
     socketService.onMessageDelivered((data) => {
       setMessages((prev) =>
         prev.map((msg) =>
@@ -377,6 +425,12 @@ export const useChat = ({ username, room }: UseChatProps) => {
     setReplyingTo(null);
   }, []);
 
+  // Reaction-related function
+  const toggleReaction = useCallback((messageId: string, emoji: string) => {
+    console.log('🔄 Toggling reaction:', { messageId, emoji, username, room });
+    socketService.toggleReaction(messageId, emoji, username, room);
+  }, [username, room]);
+
   return {
     messages,
     isConnected,
@@ -392,5 +446,6 @@ export const useChat = ({ username, room }: UseChatProps) => {
     markMessagesAsRead,
     startReply,
     cancelReply,
+    toggleReaction,
   };
 };

@@ -247,6 +247,49 @@ export const setupSocketHandlers = (io, db) => {
       }
     });
 
+    // Handle message reactions
+    socket.on('toggle_reaction', async (data) => {
+      try {
+        const { messageId, emoji, username, room } = data;
+        console.log(`😀 Toggling reaction: ${emoji} by ${username} on message ${messageId}`);
+        
+        const result = await messageModel.toggleReaction(messageId, emoji, username);
+        
+        if (result) {
+          if (result.action === 'blocked') {
+            // Send error message to the user who tried to change reaction
+            socket.emit('reaction_blocked', {
+              messageId,
+              emoji,
+              error: result.error
+            });
+            console.log(`🚫 Reaction blocked: ${emoji} by ${username} - ${result.error}`);
+          } else {
+            // Emit reaction update to all users in the room
+            io.to(room).emit('reaction_updated', {
+              messageId,
+              reactions: result.reactions,
+              action: result.action,
+              emoji,
+              username
+            });
+            
+            console.log(`✅ Reaction ${result.action}: ${emoji} by ${username}`);
+          }
+        } else {
+          socket.emit('error', { 
+            message: 'Failed to toggle reaction'
+          });
+        }
+      } catch (error) {
+        console.error('Error toggling reaction:', error);
+        socket.emit('error', { 
+          message: 'Failed to toggle reaction',
+          error: error.message 
+        });
+      }
+    });
+
     // Handle disconnection
     socket.on('disconnect', () => {
       console.log(`🔌 User disconnected: ${socket.id}`);

@@ -59,7 +59,7 @@ export class MessageController {
           .skip(skipNum)
           .toArray();
 
-        // Ensure all messages have a status field
+        // Ensure all messages have a status field and preserve reactions
         messages = rawMessages.map(msg => ({
           ...msg,
           status: msg.status || {
@@ -70,10 +70,12 @@ export class MessageController {
             readAt: null,
             deliveredTo: [],
             readBy: []
-          }
+          },
+          reactions: msg.reactions || {} // Ensure reactions field is preserved
         }));
       }
       console.log('📊 Found messages:', messages.length);
+      console.log('🎭 Messages with reactions:', messages.filter(m => m.reactions && Object.keys(m.reactions).length > 0).map(m => ({ id: m._id, reactions: m.reactions })));
     } else {
       console.log('❌ No room specified, returning empty array');
       messages = [];

@@ -10,6 +10,7 @@ import ImagePreview from "./ImagePreview";
 import ImageMessage from "./ImageMessage";
 import ThemeDropdown from "./ThemeDropdown";
 import SwipeableMessage from "./SwipeableMessage";
+import MessageReactionsComponent from "./MessageReactions";
 
 interface ChatroomProps {
   username: string;
@@ -43,6 +44,7 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     markMessagesAsRead,
     startReply,
     cancelReply,
+    toggleReaction,
   } = useChat({ username, room });
 
   const scrollToBottom = () => {
@@ -70,21 +72,25 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
     };
   }, [markMessagesAsRead]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      await sendMessage(newMessage);
+    const messageText = newMessage.trim();
+    if (messageText) {
+      // Clear input immediately for instant UI response
       setNewMessage("");
+
+      // Send message without awaiting (fire and forget)
+      sendMessage(messageText).catch((error) => {
+        console.error("Failed to send message:", error);
+        // Restore message text only if sending fails
+        setNewMessage(messageText);
+      });
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewMessage(e.target.value);
     handleTyping();
-  };
-
-  const handleMessageClick = (message: Message) => {
-    startReply(message);
   };
 
   const handleMessageKeyDown = (e: React.KeyboardEvent, message: Message) => {
@@ -214,7 +220,9 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
               <div className="flex items-center space-x-2 mt-1">
                 <div className="flex items-center space-x-1">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
-                  <span className={`text-[10px] sm:text-xs ${currentTheme.textSecondary}`}>
+                  <span
+                    className={`text-[10px] sm:text-xs ${currentTheme.textSecondary}`}
+                  >
                     {onlineUsers.length} online
                   </span>
                 </div>
@@ -326,33 +334,51 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className={`sm:hidden absolute top-[60px] left-0 right-0 z-30 ${currentTheme.surface} border-b ${currentTheme.border} shadow-lg`}>
+        <div
+          className={`sm:hidden absolute top-[60px] left-0 right-0 z-30 ${currentTheme.surface} border-b ${currentTheme.border} shadow-lg`}
+        >
           <div className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className={`text-sm ${currentTheme.textSecondary}`}>
                 Connection
               </span>
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"}`}></div>
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isConnected ? "bg-green-400" : "bg-red-400"
+                  }`}
+                ></div>
                 <span className={`text-sm ${currentTheme.text}`}>
                   {isConnected ? "Connected" : "Disconnected"}
                 </span>
               </div>
             </div>
-            
+
             <button
               onClick={handleShareRoom}
               className={`w-full p-3 rounded-lg flex items-center justify-center space-x-2 ${currentTheme.surface} ${currentTheme.text} hover:bg-gray-700 transition-colors`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                />
               </svg>
               <span>Share Room</span>
             </button>
 
             <div className="pt-2 border-t ${currentTheme.border}">
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${currentTheme.textSecondary}`}>Theme</span>
+                <span className={`text-sm ${currentTheme.textSecondary}`}>
+                  Theme
+                </span>
                 <ThemeDropdown />
               </div>
             </div>
@@ -447,7 +473,6 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                         className={getMessageBubbleClass(
                           message.user === username,
                         )}
-                        onClick={() => handleMessageClick(message)}
                         onKeyDown={(e) => handleMessageKeyDown(e, message)}
                         tabIndex={0}
                         aria-label={`Reply to message from ${message.user}: ${message.message}`}
@@ -498,10 +523,23 @@ const Chatroom = ({ username, room, onLeave }: ChatroomProps) => {
                             />
                           )}
                         </div>
+
+                        {/* Message Reactions */}
+                        <MessageReactionsComponent
+                          reactions={message.reactions}
+                          currentUser={username}
+                          onToggleReaction={(emoji) => {
+                            console.log("🎯 Chatroom calling toggleReaction:", {
+                              messageId: message._id,
+                              emoji,
+                              reactions: message.reactions,
+                            });
+                            toggleReaction(message._id, emoji);
+                          }}
+                        />
                       </div>
                     </div>
                   </SwipeableMessage>
-
                 </div>
               </div>
             ))

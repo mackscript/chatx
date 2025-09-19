@@ -17,6 +17,10 @@ export interface ReplyTo {
   user: string;
 }
 
+export interface MessageReactions {
+  [emoji: string]: string[]; // emoji -> array of usernames
+}
+
 export interface Message {
   _id: string;
   message: string;
@@ -29,6 +33,7 @@ export interface Message {
   messageType?: 'text' | 'image';
   imageUrl?: string;
   imageData?: string; // Base64 image data
+  reactions?: MessageReactions;
 }
 
 export interface OnlineUser {
@@ -266,6 +271,37 @@ class SocketService {
   markMessagesAsReadBulk(messageIds: string[], userId: string): void {
     if (this.socket) {
       this.socket.emit("mark_messages_read_bulk", { messageIds, userId });
+    }
+  }
+
+  // Toggle reaction on a message
+  toggleReaction(messageId: string, emoji: string, username: string, room: string): void {
+    if (this.socket) {
+      this.socket.emit("toggle_reaction", { messageId, emoji, username, room });
+    }
+  }
+
+  // Listen for reaction updates
+  onReactionUpdated(callback: (data: {
+    messageId: string;
+    reactions: MessageReactions;
+    action: 'added' | 'removed';
+    emoji: string;
+    username: string;
+  }) => void): void {
+    if (this.socket) {
+      this.socket.on("reaction_updated", callback);
+    }
+  }
+
+  // Listen for blocked reactions
+  onReactionBlocked(callback: (data: {
+    messageId: string;
+    emoji: string;
+    error: string;
+  }) => void): void {
+    if (this.socket) {
+      this.socket.on("reaction_blocked", callback);
     }
   }
 

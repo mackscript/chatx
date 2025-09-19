@@ -39,7 +39,7 @@ export const useChat = ({ username, room }: UseChatProps) => {
 
       const response = await apiService.getMessages({
         room,
-        limit: 50,
+        limit: 20,
         // Removed userId to fetch messages by room only
       });
 
